@@ -1,0 +1,71 @@
+function [mu, dmudm, dmudS, s2, ds2dm, ds2dS, c, dcdm, dcds] = lossSat(cost, m, S)
+
+% Compute expectation and variance of a saturating cost 
+% 1 - a*exp(-(x-z)'*W*(x-z))
+% and their derivatives, where x ~ N(m,S), and a is a normalising constant
+%
+% input arguments:
+% m:  D-by-1 mean of the state distribution
+% S:  D-by-D covariance matrix of the state distribution
+% z:  D-by-1 target state
+% W:  D-by-D weight matrix
+%
+% output arguments:
+% mu:        1-by-1 expected saturating cost
+% dmudm:     1-by-D derivative of expected reward wrt input mean
+% dmudS:     D-by-D derivative of expected reward wrt input covariance matrix
+% s2:        1-by-1 variance of reward
+% ds2dm:     1-by-D derivative of variance of reward wrt input mean
+% ds2dS:     D-by-D derivative of variance of reward wrt input covariance matrix
+% c          D-by-1 inv(s) time input-output covariance
+% dcdm       D-by-D derivative of c wrt input mean
+% dcds       D-by-D^2 derivative of c wrt input variance
+%
+% Copyright (C) 2008-2012 by Carl Edward Rasmussen and Marc Deisenroth
+% 2012-06-20
+
+% some precomputations
+D = length(m); % get state dimension
+
+% set some defaults if necessary
+if isfield(cost,'W'); W = cost.W; else W = eye(D); end
+if isfield(cost,'z'); z = cost.z; else z = zeros(D,1); end
+
+SW = S*W;
+iSpW = W/(eye(D)+SW);
+
+mu = -exp(-(m-z)'*iSpW*(m-z)/2)/sqrt(det(eye(D)+SW));  % expected reward
+
+% dervivatives of expected reward
+if nargout > 1
+  dmudm = -mu*(m-z)'*iSpW;  % wrt input mean
+  dmudS = mu*(iSpW*(m-z)*(m-z)'-eye(D))*iSpW/2;  % wrt input covariance matrix
+end
+
+% variance of reward
+if nargout > 3
+  i2SpW = W/(eye(D)+2*SW);
+  r2 = exp(-(m-z)'*i2SpW*(m-z))/sqrt(det(eye(D)+2*SW));
+  s2 = r2 - mu^2;
+  if s2 < 1e-12; s2=0; end % for numerical reasons
+end
+
+% derivatives of variance of reward
+if nargout > 4
+  % wrt input mean
+  ds2dm = -2*r2*(m-z)'*i2SpW-2*mu*dmudm;
+  % wrt input covariance matrix
+  ds2dS = r2*(2*i2SpW*(m-z)*(m-z)'-eye(D))*i2SpW-2*mu*dmudS;
+end
+
+% inv(s)*IO covariance
+if nargout > 6
+    t = W*z - iSpW*(SW*z+m);
+    c = mu*t;
+    dcdm = t*dmudm - mu*iSpW;
+    dcds = -mu*(bsxfun(@times,iSpW,permute(t,[3,2,1])) + ...
+                                    bsxfun(@times,permute(iSpW,[1,3,2]),t'))/2;
+    dcds = bsxfun(@times,t,dmudS(:)') + reshape(dcds,D,D^2);
+end
+
+mu = 1+mu;

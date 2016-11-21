@@ -1,0 +1,397 @@
+\documentclass[a4paper]{article}
+
+%\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+%\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setlength{\textwidth}{160mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\parindent}{0 mm}
+
+\newcommand{\diag}[1]{\operatorname{diag{#1}}}
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfs}{{\bf s}}
+\newcommand{\bfz}{{\bf z}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\T}{^{\top}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\newcommand{\inv}{^{-1}}
+\renewcommand{\Re}{\mathbb{R}}
+\newcommand{\bfmu}{\vec\mu}
+\newcommand{\bfSig}{\mat{\Sigma}}
+\newcommand{\bfM}{\vec{M}}
+\newcommand{\bfS}{\mat{S}}
+\newcommand{\bfx}{\vec{x}}
+\newcommand{\bfy}{\vec{y}}
+\newcommand{\bfpi}{\vec{\pi}}
+\newcommand{\bfw}{\mat{w}}
+\newcommand{\bfom}{\mat{\omega}}
+\newcommand{\<}{\langle}
+\renewcommand{\>}{\rangle}
+\renewcommand{\d}{\,\mathrm{d}}
+\renewcommand{\T}{^\intercal}%\top}%\mathsf{T}}
+\newcommand{\bfC}{\mat{C}}
+\newcommand{\de}{\partial}
+\newcommand{\bfxi}{\mat{\Xi}}
+
+\title{Approximate Probabilistic Linear Control on Product Features}
+\author{Philipp Hennig}
+\date{November 23, 2010}
+
+\begin{document}
+
+\maketitle
+
+We define a linear policy $\bfpi$ mapping from $D$ inputs
+$\bfx\in\Re^D$ to $U$ outputs $\bfpi\in\Re^{U}$. In contrast to a
+na\"i ve linear policy, we augment the variables by an intermediate
+variable $\bfy\in\Re^{\frac{1}{2}D(D+1)}$ which contains all products
+of elements of $\bfx$ up to second order:
+\begin{equation}
+  \label{eq:1}
+  \bfpi(\bfy) = \bfw \bfx + \bfom \bfy + \vec{b} \qquad y_k = x_i x_j
+  \text{ for some map }  (i,j) \to k
+\end{equation}
+We further assume we have access to only a Gaussian belief (instead of
+exact values) on the value of $\bfx$:
+\begin{equation}
+  \label{eq:2}
+  p(\bfx) = \N(\bfx;\bfm,\bfs)
+\end{equation}
+This document uses the summation convention\footnote{A. Einstein,
+  \emph{``Die Grundlagen der allgemeinen Relativit\"atstheorie''},
+  Annalen der Physik \textbf{354} 7 (1916) pp. 769--822}: subscripts on objects
+denote dimensions of that multidimensional object. Subscripts present
+twice or more times in a product (!)\ term are summed over. 
+
+\section*{Approximate Gaussian Belief on $\bfy$}
+\label{sec:belief-bfy}
+
+The belief on $\bfy$ is not Gaussian (to see this, consider the simple
+example of the square value $x_i ^2$, which is positive
+semidefinite). But we can can calculate the first two moments of the
+joint belief on $(\bfx,\bfy)$, defining an approximate Gaussian
+belief. For this, we use {\sc Isserli}'s theorem\footnote{L. Isserlis,
+  \emph{``On a formula for the product-moment coefficient of a normal
+    frequency distribution in any number of variables''}; Biometrika
+  \textbf{12} 1/2 (Nov 1918), pp. 134--139} (a special case of {\sc
+  Wick}'s theorem\footnote{G.C. Wick, \emph{``The evaluation of the
+    collision matrix''}; Phys. Rev. \textbf{80} 2 (Oct 1950),
+  pp. 268--272}), which states that, for Gaussian distributed
+variables, such as our $\bfx$, the higher moments are
+\begin{equation}
+  \label{eq:3}
+  \begin{aligned}
+  \<(x_1 - m_1)(x_2-m_2)\cdots (x_{2n-1} - m_{2n -1})\> &= 0 \qquad \text{and}\\
+  \<(x_1 - m_1)(x_2-m_2)\cdots (x_{2n}-m_{2n})\> &= \operatorname*{\sum\prod}_{\text{pairs } (i,j)} \<(x_i-m_i)(x_j-m_j)\>    
+  \end{aligned}
+\end{equation}
+where the notation on the right hand side denotes a sum over products
+of all possible combinations of the index set into pairs. The theorem
+also holds if indices are repeated (i.e. if terms are raised to a
+power). With this, we can easily find the moments of $\bfy$, and thus
+an approximate Gaussian belief 
+\begin{equation}
+  \label{eq:12}
+  q(\bfx,\bfy) = \N \left[
+    \begin{pmatrix}
+      \bfx \\ \bfy
+    \end{pmatrix};
+    \begin{pmatrix}
+      \bfm \\ \bfmu
+    \end{pmatrix},
+    \begin{pmatrix}
+      \bfs & \bfxi\T \\ \bfxi & \bfSig
+    \end{pmatrix}
+\right]
+\end{equation}
+For the parameters, we find, after some lengthy algebra,
+\begin{alignat}{3}
+  \label{eq:4}
+  \mu_{(ij)} &= \< x_i x_j \> &=& s_{ij} + m_i m_j\\
+  \Xi_{(ij)\ell} &= \<(x_ix_j)x_\ell\> -
+   \<x_ix_j\>\<x_\ell\> &=& s_{i\ell}m_j + s_{j\ell} m_i
+ \end{alignat}
+and
+\begin{equation}
+  \label{eq:5}
+  \begin{aligned}
+  \Sigma_{(ij)(rt)} &= \<(x_ix_j)(x_rx_t)\> -
+   \<x_ix_j\>\<x_rx_t\> \\
+&= s_{ir}s_{jt} + s_{it}s_{jr} + s_{ir}m_jm_t + s_{it} m_j m_r +
+s_{jr} m_i m_t + s_{jt} m_i m_r\\
+&= s_{ir}\mu_{jt} + s_{it}\mu_{jr} + s_{jr}m_im_t + s_{jt}m_im_r.
+   \end{aligned}
+\end{equation}
+
+\section*{Belief on $\bfpi$}
+\label{sec:belief-bfpi}
+
+Using the approximate Gaussian belief on $\bfy$, it is straightforward
+to obtain a belief on $\bfpi$ by marginalizing.
+\begin{equation}
+  \label{eq:6}
+  \begin{aligned}
+  p(\bfpi) &= \int p(\bfpi\,|\,\bfy) q(\bfy\,|\, \bfmu, \bfSig)
+  \d \bfy \\
+  &= \N\left[\bfpi;
+  \begin{pmatrix}
+    \bfw & \bfom
+  \end{pmatrix}
+  \begin{pmatrix}
+    \bfm \\ \bfmu 
+  \end{pmatrix}
+,
+\begin{pmatrix}
+  \bfw & \bfom
+\end{pmatrix}
+\begin{pmatrix}
+   \bfs & \bfxi\T \\ \bfxi & \bfSig
+\end{pmatrix}
+\begin{pmatrix}
+  \bfw\T \\ \bfom\T
+\end{pmatrix}
+\right]\\
+ &= \N\left[ \bfpi ;
+     \bfw \bfm + \bfom \bfmu + \vec{b},
+   \bfw \bfs \bfw\T + \bfom \bfxi \bfw\T + \bfw \bfxi\T \bfom\T +
+   \bfom \bfSig \bfom\T
+\right]\\
+  &\equiv \N(\bfpi,\bfM,\bfS)
+  \end{aligned}
+\end{equation}
+
+\section*{Derivatives}
+\label{sec:derivatives}
+
+To optimize the policy, we also need the derivatives of the
+output parameters $\bfM$, $\bfS$ with respect to $\bfm$ and $\bfs$, as
+well as those same derivatives for the variable $\bfC$, which is the
+product of $\bfs^{-1}$ and the input-output covariance
+\begin{equation}
+  \label{eq:7}
+  \begin{aligned}[t]
+  \bfC &= \bfs^{-1} ( \< \bfx \bfpi\T \>  -  \<\bfx\>\<\bfpi\T\>) \\
+  &= \bfs^{-1} ( \< \bfx (\bfx\T \bfw\T + \bfy\T \bfom + \vec{b})\> - \< \bfx\>
+  \<\bfx\T\bfw\T + \bfy\T \bfom\T + \vec{b}\>)\\
+  &= \bfs^{-1} (\bfs \bfw\T + \bfxi\T\bfom\T)\\
+  &= \bfw\T + \bfs^{-1} \bfxi\T\bfom\T\\
+  \bfC_{au} &= w_{ua} + s^{-1} _{a\ell} (s_{i\ell} m_j + s_{j\ell}
+  m_i) \omega_{uij} \\
+  &= w_{ua} + (\delta_{ai} m_j + \delta_{aj}m_i) \omega_{uij}
+  \end{aligned}
+\end{equation}
+We can evaluate these derivatives using the chain rule, which will
+require the terms
+\begin{xalignat}{2}
+  \label{eq:8}
+  \frac{\de m_{\ell}}{\de m_r} &= \delta_{\ell r}  &
+  \frac{\de \mu_{(ij)}}{\de m_r} &= (\delta_{ir}m_j +
+  \delta_{jr}m_i) \\
+  \frac{\de m_{i}}{\de s_{rt}} &= 0 &
+ \frac{\de \mu_{(ij)}}{\de s_{rt}} &= \delta_{(ij)(rt)}  \\
+ \frac{\de s_{k\ell}}{\de m_{r}} &= 0 &
+ \frac{\de \Xi_{(ij)\ell}}{\de m_{r}} &= \delta_{ir}s_{j\ell} +
+ \delta_{jr} s_{i\ell}\\
+ \frac{\de s_{k\ell}}{\de s_{rt}} &= \delta_{(k\ell)(rt)} & 
+ \frac{\de \Xi_{(ij)\ell}}{\de s_{rt}} &= \delta_{ir} \delta_{\ell t}
+ m_j + \delta_{jr} \delta_{\ell t} m_i
+\end{xalignat}
+and
+\begin{equation}
+  \label{eq:9}
+  \begin{aligned}[t]
+    \frac{\de \Sigma_{(ij)(k\ell)}}{\de m_{r}} &= \delta_{ir}(s_{jk}
+    m_\ell + s_{j\ell} m_k) + \delta_{jr} (s_{i\ell}m_k +
+    s_{ik}m_\ell)
+    + \delta_{\ell r}(s_{ik} m_j + s_{jk} m_i) +
+    \delta_{kr}(s_{i\ell}m_j + s_{j\ell} m_i)\\
+    \frac{\de \Sigma_{(ij)(k\ell)}}{\de s_{rt}} &=
+    \delta_{(ik)(rt)} (s_{j\ell} + m_j m_\ell) + \delta_{(j\ell)(rt)} (s_{ik} +
+    m_i m_k) +\delta_{(i\ell)(rt)} (s_{jk} + m_j m_k) + \delta_{(jk)(rt)} (s_{i\ell}
+    + m_i m_\ell) \\
+    &= \delta_{(ik)(rt)}\mu_{j\ell} + \delta_{(j\ell)(rt)}\mu_{ik} + \delta_{(i\ell)(rt)}\mu_{jk}
+ + \delta_{(jk)(rt)} \mu_{i\ell}  \end{aligned}
+\end{equation}
+Using these intermediate results, we find 
+\begin{equation}
+  \label{eq:11}
+  \begin{aligned}
+  \frac{\de M_u}{\de m_k} &= w_{ui} \delta_{ik} m_{i} + \omega_{uij}
+  (\delta_{ik} m_j + \delta_{jk} m_i) \\
+  &= w_{uk} + \omega_{ukj} m_j + \omega_{uik} m_i\\
+  \frac{\de S_{ut}}{\de m_r} &=\frac{\de}{\de m_r} \left(
+    w_{ui}s_{ij}w_{tj} + \omega_{u(ij)} \Xi_{(ij)\ell} w_{t\ell} +
+    w_{u\ell} \Xi_{(ij) \ell} \omega_{t(ij)} + \omega_{u(ij)}
+    \Sigma_{(ij)(k\ell)} \omega_{t(k\ell)} \right)\\
+  &= \omega_{uij}(\delta_{ir} s_{j\ell} + \delta_{jr} s_{i\ell})
+  w_{t\ell} + w_{u\ell} (\delta_{ir} s_{j\ell} + \delta_{jr}
+  s_{i\ell}) \omega_{tk\ell} + \\
+  &\quad \omega_{uij} \left[ \delta_{ir} (s_{jk}m_\ell + s_{j\ell}
+    m_k) + \delta_{jr}(s_{i\ell}m_k + s_{ik}m_\ell) + \delta_{\ell
+      r}(s_{ik} m_j + s_{jk}m_i) + \delta_{kr}(s_{i\ell} m_j +
+    s_{j\ell}m_i)\right] \omega_{tk\ell}\\
+  &= \omega_{urj} s_{j\ell}w_{t\ell} + \omega_{uir}s_{i\ell}w_{t\ell}
+  + w_{u\ell}s_{j\ell}\omega_{trj} + w_{u\ell}s_{i\ell}\omega_{tir} +
+  \\
+  & \qquad \omega_{urj}(s_{jk}m_\ell + s_{j\ell}m_k) \omega_{tk\ell} +
+  \omega_{uir}(s_{i\ell}m_k + s_{ik}m_\ell) \omega_{tk\ell} \\
+  & \qquad \omega_{uij}(s_{ik}m_j + s_{jk}m_i) \omega_{tkr} +
+  \omega_{uij} (s_{i\ell}m_j + s_{j\ell}m_i) \omega_{tr\ell}\\
+ &= \underbrace{(\omega_{urj} + \omega_{ujr}) (\bfs\bfw\T)_{jt} +
+ (\omega_{trj} + \omega_{tjr}) (\bfs\bfw\T)_{ju}}_{\text{symmetric
+   under $u\leftrightarrow t$}} +\\
+&\qquad (\underbrace{\omega_{urj} \omega_{tk\ell} + \omega_{uk\ell}
+  \omega_{trj}}_{\text{symmetric under $t\leftrightarrow u$}} + \underbrace{\omega_{ujr} \omega_{tk\ell} +
+\omega_{uk\ell} \omega_{tjr}} _{\text{symmetric under $t\leftrightarrow u$}}
+) (s_{jk}m_\ell + s_{j\ell}m_k)
+ \end{aligned}
+\end{equation}
+For the transformation to the last line, a few summation variables
+were re-named, and some matrix multiplications made explicit. Note
+that the second two terms are identical to the first two up to the
+``transposition'' $u\leftrightarrow t$, and the same symmetry applies
+for the following four terms. It is important to point out here that
+the tensor $\omega_{uij}$ is \emph{not} symmetric under
+$i\leftrightarrow j$, because we only have nonzero weights for $j\geq i$.
+With similar methods, we find further
+\begin{equation}
+  \label{eq:13}
+  \begin{aligned}[t]
+    \frac{\de C_{ku}}{\de m_r} &= \frac{\de}{\de m_r} \left( w_{uk} +
+      s^{-1} _{k\ell} \Xi_{(ij)\ell} \omega_{u(ij)} \right)
+    = s^{-1} _{k\ell} (\delta_{ir} s_{j\ell} + \delta_{jr} s_{i\ell})
+    \omega_{uij}
+    = s^{-1} _{k\ell} [s_{j\ell} (\omega_{urj} + \omega_{ujr})]\\
+    &=\delta_{kj} (\omega_{urj} + \omega_{ujr}) = \omega_{urk} + \omega_{ukr} \\
+    \frac{\de M_{u}}{\de s_{rt}}  &= \omega_{uij}\frac{\de
+      \mu_{ij}}{\de s_{rt}} = \omega_{uij}\delta_{(ij)(rt)} =
+    \omega_{urt}\\
+    \frac{\de S_{uv}}{\de s_{rt}} &= w_{ui} \frac{\de s_{ij}}{\de
+      s_{rt}} \omega_{vj} +(\omega_{uij}w_{v\ell} + w_{u\ell}\omega_{vij})\frac{\de
+      \Xi_{ij\ell}}{\de s_{rt}} + \omega_{uij}\frac{\de \Sigma_{ijk\ell}}{\de s_{rt}}
+    \omega_{vk\ell}\\
+    &= w_{ur}\delta_{(rt)(ij)} w_{vt} + (\omega_{uij}w_{v\ell} +
+    w_{u\ell}\omega_{vij}) (\delta_{ir}\delta_{lt}m_{j} +
+    \delta_{jr}\delta_{\ell t} m_i) +\\
+    & \qquad \omega_{uij}(\delta_{ir}\delta_{kt}\mu_{j\ell} +
+    \delta_{jr}\delta_{\ell t} \mu_{ik} + \delta_{ir}\delta_{\ell t}
+    \mu_{jk} + \delta_{jr}\delta_{kt}\mu_{il}) \omega_{vkl}\\
+    &= w_{ur}w_{vt} + \omega_{urj} w_{vt}m_j + w_{ut} \omega_{vrj} m_j
+    + \omega_{uir}w_{vt}m_i + w_{ut}\omega_{vir}m_i + \\
+    &\qquad \omega_{urj}\omega_{vt\ell} \mu_{j\ell} +
+    \omega_{uir}\omega_{vkt}\mu_{ik} + \omega_{urj} \omega_{vkt}
+    \mu_{jk} + \omega_{uir}\omega_{vt\ell}\mu_{i\ell}\\
+    &= w_{ur}w_{vt} + [(\omega_{urj}+\omega_{ujr})w_{vt} +
+    (\omega_{vrj} + \omega_{vjr})w_{ut} ]m_j +
+    [(\omega_{urj} + \omega_{ujr})(\omega_{vt\ell} + \omega_{v\ell t})]\mu_{j\ell}
+  \end{aligned}
+\end{equation}
+The derivative of the input-output covariance with respect to the
+product weights holds a surprise. Using that, for invertible
+matrices\footnote{S. Roweis, \emph{``Matrix Identities''}, Univ. of
+  Toronto, 1999} $\mat{A}$,
+\begin{equation}
+  \label{eq:14}
+  \frac{\de A_{ij} ^{-1}}{\de z} = - A^{-1} _{ik} \frac{\de A_{k\ell}}{\de
+    z} A^{-1} _{\ell j}
+\end{equation}
+we arrive at
+\begin{equation}
+  \label{eq:15}
+  \begin{aligned}[t]
+    \frac{\de C_{au}}{\de s_{rt}} &= \frac{\de s^{-1} _{a\ell}}{\de
+      s_{rt}} \Xi_{ij\ell} \omega_{uij} + s^{-1} _{a\ell} \frac{\de
+      \Xi_{ij\ell}}{\de s_{rt}} \omega_{uij} \\
+    &= -s^{-1} _{ab} \delta_{br}\delta_{ct}s^{-1} _{c\ell}
+    \Xi_{ij\ell} \omega_{uij} + s^{-1} _{a\ell}
+    (\delta_{ir}\delta_{\ell t} m_j + \delta_{jr} \delta_{\ell t} m_i)
+    \omega_{hij}\\
+    &= -s_{ar} ^{-1} s_{t\ell} ^{-1} \Xi_{ij\ell} \omega_{uij} +
+    s^{-1} _{at} \omega_{urj} m_j + s^{-1} _{at} \omega_{uir} m_i\\
+    &= -s_{ar} ^{-1} s_{t\ell} ^{-1} \Xi_{ij\ell} \omega_{uij} + 
+    s^{-1} _{at} (\omega_{urj} + \omega_{ujr})m_j
+  \end{aligned}
+\end{equation}
+With Equation \eqref{eq:4}, we can expand this expression further to find
+\begin{equation}
+  \label{eq:21}
+  \begin{aligned}[b]
+       \frac{\de C_{au}}{\de s_{rt}} &= -s_{ar} ^{-1} s^{-1} _{t\ell}
+       (s_{i\ell} m_j s_{j\ell} m_i) \omega_{uij} + s_{at} ^{-1}
+       (\omega_{urj} + \omega_{ujr})m_j\\
+       &= -s_{ar} ^{-1} \delta_{ti} (\omega_{uij} + \omega_{uji}) m_j
+       + s_{at} ^{-1} (\omega_{urj} + \omega_{ujr}) m_j\\
+       &= -s_{ar} ^{-1} (\omega_{utj} + \omega_{ujt}) m_j
+       + s_{at} ^{-1} (\omega_{urj} + \omega_{ujr}) m_j
+  \end{aligned}
+\end{equation}
+In particular, Equation \eqref{eq:21} implies that $\de \bfC / \de
+s_{rt} = - \de \bfC / \de s_{tr}$. However, because $\bfs$ is positive
+definite, we also have $s_{rt}\equiv s_{tr}$ and hence $\de \bfC /
+\de s_{rt} = \de \bfC / \de s_{tr}$. It follows thence that this
+derivative vanishes:
+\begin{equation}
+  \label{eq:22}
+  \frac{\de C_{au}}{\de s_{rt}} \equiv 0
+\end{equation}
+A few of the required derivatives are straightforward:
+\begin{xalignat}{3}
+  \label{eq:16}
+    \frac{\de M_u}{\de b_v} &= \delta_{uv} & 
+    \frac{\de S_{uv}}{\de b_h} &= 0 & 
+    \frac{\de C_{au}}{\de b_h} &= 0\\
+    \frac{\de M_u}{\de w_{vr}} &= \delta_{vu} m_r &
+    \frac{\de C_{au}}{\de w_{vr}} &= \delta_{uv} \delta_{ar} &
+    \frac{\de M_u}{\de \omega_{vrs}} &= \delta_{uv} \delta_{ri}
+    \delta_{sj} \mu_{ij}
+\end{xalignat}
+The remaining necessary results are slightly more involved, but also
+not problematic:
+\begin{equation}
+  \label{eq:18}
+  \begin{aligned}[t]
+    \frac{\de S_{uv}}{\de w_{hr}} &= \frac{\de}{\de w_{hr}}
+    \left[w_{ui} s_{ij} w_{vj} + (\omega_{uij} w_{vk} +
+      w_{uk}\omega_{vij})\Xi_{ijk}  \right]\\
+    &= \delta_{uh} (s_{rj}w_{vj} + \omega_{vij} \Xi_{ijr}) +
+    \delta_{vh} (s_{ir} w_{ui} + \omega_{uij} \Xi_{ijr})\\
+    &= \delta_{uh} (s_{rj}w_{vj} + \omega_{vij} \Xi_{ijr}) +
+    \delta_{vh} (s_{rj} w_{uj} + \omega_{uij} \Xi_{ijr}).\\
+  \end{aligned}
+\end{equation}
+Also
+\begin{equation}
+  \label{eq:19}
+  \begin{aligned}[t]
+    \frac{\de S_{uv}}{\omega_{hrs}} &= \frac{\de}{\de \omega_{hrs}}
+    \left[w_{ui} s_{ij} w_{vj} + (\omega_{uij} w_{vk} +
+      w_{uk}\omega_{vij})\Xi_{ijk}  \right]\\
+    &= \delta_{uh}( w_{vk}\Xi_{rsk} + \Sigma_{rsk\ell} \omega_{vk\ell}
+    ) + \delta_{vh} ( w_{uk}\Xi_{rsk} + \Sigma_{ijrs} \omega_{uij} )\\
+    &= \delta_{uh}( w_{vk}\Xi_{rsk} + \Sigma_{rsk\ell} \omega_{vk\ell}
+    ) + \delta_{vh} ( w_{uk}\Xi_{rsk} + \Sigma_{rsk\ell} \omega_{uk\ell} )\\
+  \end{aligned}
+\end{equation}
+And finally:
+\begin{equation}
+\label{eq:20}
+\begin{aligned}
+\frac{\de C_{au}}{\de \omega_{vrs}} &= \left(\bfs^{-1}\bfxi\T
+    \right)_{aij} \delta_{uv} \delta_{(ij)(rs)}\\
+    &= \delta_{uv} (\delta_{ur} m_s + \delta_{us} m_r)
+  \end{aligned}
+\end{equation}
+In particular, notice that none of the final results requires the
+explicit inverse of $\bfs$. This is important not only for
+computational efficiency, but also for numerical stability: If $\bfs$
+is singular, the inverse is not defined; but there is nothing wrong
+with predicting the product of variables known with infinite precision.
+\end{document}

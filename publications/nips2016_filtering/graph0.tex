@@ -1,0 +1,42 @@
+% ======================(start graph 1 simulation)======================
+% 1. NFNF
+\addplot+[
+error bars/.cd,
+y dir=both,y explicit,
+]
+table[x=x,y=y,y error=error]
+{
+x y error
+0 0.999823 0.000155
+};
+% 2. DETM (Dallaire)
+\addplot+[
+error bars/.cd,
+y dir=both,y explicit,
+]
+table[x=x,y=y,y error=error]
+{
+x y error
+0 0.999665 0.000000
+};
+% 3. BFNF (Deisenroth)
+\addplot+[
+error bars/.cd,
+y dir=both,y explicit,
+]
+table[x=x,y=y,y error=error]
+{
+x y error
+0 0.999823 0.000155
+};
+% 4. BFBF (Me)
+\addplot+[
+error bars/.cd,
+y dir=both,y explicit,
+]
+table[x=x,y=y,y error=error]
+{
+x y error
+0 0.999823 0.000155
+};
+% ======================(end graph 1 simulation)======================

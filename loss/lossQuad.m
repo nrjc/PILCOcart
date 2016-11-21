@@ -1,0 +1,59 @@
+function [mu, dmudm, dmudS, s2, ds2dm, ds2dS, c, dcdm, dcds] = lossQuad(cost, m, S)
+
+% Compute expectation and variance of a quadratic cost 
+% (x-z)'*W*(x-z)
+% and their derivatives, where x ~ N(m,S)
+%
+% input arguments:
+% m:       D-by-1 mean of the state distribution
+% S:       D-by-D covariance matrix of the state distribution
+% cost.z:  D-by-1 target state
+% cost.W:  D-by-D weight matrix
+%
+% output arguments:
+% mu:        1-by-1 expected cost
+% dmudm:     1-by-D derivative of expected cost wrt input mean
+% dmudS:     D-by-D derivative of expected cost wrt input covariance matrix
+% s2:        1-by-1 variance of cost
+% ds2dm:     1-by-D derivative of variance of cost wrt input mean
+% ds2dS:     D-by-D derivative of variance of cost wrt input covariance matrix
+% c:         D-by-1 inv(S) times input-output covariance
+% dcdm:      D-by-D derivative of c wrt input mean
+% dcds:      D-by-D^2 derivative of c wrt input variance
+%
+% Copyright (C) 2009-2012 by Marc Deisenroth and Andrew McHutchon, 30-10-2012
+
+D = length(m); % get state dimension
+
+% set some defaults if necessary
+if isfield(cost,'W'); W = cost.W; else W = eye(D); end
+if isfield(cost,'z'); z = cost.z; else z = zeros(D,1); end
+
+mu = S(:)'*W(:) + (z-m)'*W*(z-m); % expected reward
+
+% dervivatives of expected cost
+if nargout > 1
+  dmudm = 2*(m-z)'*W; % wrt input mean
+  dmudS = W';         % wrt input covariance matrix
+end
+
+% variance of cost
+if nargout > 3
+  s2 = trace(W*S*(W + W')*S) + (z-m)'*(W + W')*S*(W + W')*(z-m);
+  if s2 < 1e-12; s2 = 0; end % for numerical reasons
+end
+
+% derivatives of variance of cost
+if nargout > 4
+  % wrt input mean
+  ds2dm = -(2*(W+W')*S*(W+W)*(z-m))'; 
+  % wrt input covariance matrix
+  ds2dS = W'*S'*(W + W')'+(W + W')'*S'*W' + (W + W')*(z-m)*((W + W')*(z-m))'; 
+end
+
+% inv(s) times IO covariance
+if nargout > 6
+    c = 2*W*(m-z);
+    dcdm = 2*W;
+    dcds = zeros(D,D^2);
+end

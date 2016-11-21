@@ -1,0 +1,138 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{mathtools}
+\usepackage{paralist}
+\usepackage{enumitem}
+
+%\usepackage{../MarkMathCmds}. From Mark's command library:
+\newcommand{\transpose}{^\mathrm{\textsf{\tiny T}}}
+\DeclareMathOperator{\Tr}{Tr}
+\newcommand{\quadform}[2][]{{#2}\transpose{#1}{#2}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\Reals}{\mathbb{R}}
+\newcommand{\ExpSymb}{\mathbb{E}}
+\newcommand{\Exp}[2]{\ExpSymb_{#1}\left[#2\right]}
+\newcommand{\bExp}[2]{\langle #2 \rangle_{#1}}
+\newcommand{\Var}[2]{\mathbb{V}_{#1}\left[#2\right]}
+\newcommand{\GP}{\mathcal{GP}}
+\newcommand{\FromDist}{\sim}
+\newcommand{\NormPdf}[3]{(2\pi)^{-\frac{D}{2}}\detbar{#3}^{-1}
+  \exp\left(-\frac{1}{2} \quadform[#3^{-1}]{(#1-#2)} \right)}
+\newcommand{\vk}{\mathbf{k}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vbeta}{\boldsymbol{\beta}}
+
+\newcommand{\loss}{\mathcal{L}}
+
+\newcommand\noqte[1]{\textcolor{red}{(#1)}}
+
+\newcommand{\is}{x}                      % Input state
+\newcommand{\os}{y^*}                    % Output state
+\newcommand{\fo}{\hat{y}}                % Fantasy observation
+\newcommand{\fostd}{\sigma_{\fo|\vy}}
+\newcommand{\fovar}{\fostd^{2}}
+\newcommand{\foprec}{\fostd^{-2}}
+\newcommand{\fin}{\hat{x}}               % Fantasy input
+\newcommand{\Xaug}{\bar{X}}
+\newcommand{\yaug}{\bar{\vy}}
+
+\newcommand{\K}{\bar{K}_{XX}}
+\newcommand{\Kaug}{\bar{K}_{\Xaug\Xaug}}
+\newcommand{\Kaugis}{\vk_{\Xaug \is}}
+\newcommand{\Kaugfin}{\vk_{\Xaug \fin}}
+
+\newcommand{\mfo}{\bExp{}{\fo}}
+
+\begin{document}
+
+\title{Active learning in PILCO}
+\author{Mark van der Wilk, Rowan McAllister \& Carl Edward Rasmussen}
+\maketitle
+
+\section{Background}
+We want to estimate the expected variance of the next state, assuming we will observe a new data point. We don't know where the data point will land, but we know it will reduce our uncertainty. So what is our uncertainty going to be in the next time point on average?
+
+\section{Mathematical working}
+\subsection{Notation}
+\begin{itemize}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,labelwidth=1cm,align=left,itemindent=1cm]
+  \item[$\is$]:  Input state
+  \item[$\os$]:  Output state
+  \item[$\fo$]:  Fantasy observation
+  \item[$\fin$]:  Fantasy input
+  \item[$X$]:  Current GP inputs
+  \item[$\vy$]:  Current GP observations
+  \item[$\Xaug$]: $X$ augmented with fantasy input
+  \item[$\yaug$]: $\vy$ augmented with fantasy output
+  \item[$\sigma^2$]:  Variance of fantasy observation noise.
+\end{itemize}
+
+
+\subsection{Rank 1 update of $\Kaug\inv$}
+\begin{align}
+\Kaug\inv = \begin{bmatrix} \K & \Kaugfin \\ \Kaugfin\transpose & k_{\fin\fin} \end{bmatrix}\inv = \begin{bmatrix} \K\inv + \K\inv\vk_{X\fin}\vk_{X\fin}\transpose\K\inv M & -\K\inv\vk_{X\fin} M \\ -\vk_{X\fin}\transpose\K\inv M & M \end{bmatrix}
+\end{align}
+\begin{align}
+M = \left( k_{\fin\fin} + \sigma^2 - \vk_{X\fin}\transpose\K\inv\vk_{X\fin}\right)\inv = \foprec
+\end{align}
+
+
+\subsection{Derivation}
+Overall term to be estimated:
+\begin{align}
+\Exp{\fo}{\Var{\is, f}{\os | \is, \fo}} &= \Exp{\fo}{\underbrace{\Exp{\is}{\Var{f}{\os|x, \fo}}}_{\text{Constant w.r.t.~$\fo$}} + \Var{\is}{\Exp{f}{\os|\is, \fo}}}
+\end{align}
+
+\subsubsection{Expectation of the variance}
+For the first term we can ignore the expectation over $\fo$:
+\begin{align}
+&\Exp{\fo}{\Exp{\is}{\Var{f}{\os|x, \fo}}} = \Exp{\is}{k_{\is\is} - \Kaugis\transpose\Kaug\inv\Kaugis}
+= \Exp{\is}{k_{\is\is} - \begin{bmatrix} \vk_{X\is} \\ k_{\fin\is}\end{bmatrix}\transpose \Kaug\inv \begin{bmatrix} \vk_{X\is} \\ k_{\fin\is}\end{bmatrix}} \\
+&= \Exp{\is}{k_{\is\is} - \vk_{X\is}\transpose\K\inv\vk_{X\is}} - \foprec\cdot\Exp{\is}{\quadform{\left( \vk_{X\fin}\transpose\K\inv\vk_{X\is} - k_{\fin x} \right)}{}} \\
+&= \Exp{\is}{k_{\is\is} - \vk_{X\is}\transpose\K\inv\vk_{X\is}} - \foprec \Big( \vk_{X\fin}\transpose\K\inv\bExp{x}{\vk_{X\is}\vk_{X\is}\transpose}\K\inv\vk_{X\fin} - 2\vk_{X\fin}\transpose\K\inv\bExp{x}{\vk_{X\is}\vk_{\fin\is}} + \bExp{x}{k_{\fin x}^2} \Big)\\
+&= \underbrace{\Exp{\is}{k_{\is\is} - \vk_{X\is}\transpose\K\inv\vk_{X\is}}}_{\text{Original expected variance}} - \underbrace{\foprec \cdot [\vk_{X\fin}\transpose\K\inv, -1]\bExp{x}{\vk_{\Xaug\is}\vk_{\Xaug\is}\transpose}[\vk_{X\fin}\transpose\K\inv, -1]\transpose}_{\text{Always $\geq 0$}}
+\end{align}
+
+\subsubsection{Variance of the expectation}
+Starting with the variance of the expectation, without the expectation over the fantasy data:
+\begin{align}
+\Var{\is}{\Exp{f}{\os|\is, \fo}} &= \Var{\is}{\Kaugis\transpose\Kaug\inv\yaug} = \Var{\is}{\Kaugis\transpose\bar{\vbeta}} \\
+&= \bar{\vbeta}\transpose\Var{\is}{\Kaugis}\bar{\vbeta} \\
+&= \Tr\left( \Var{\is}{\Kaugis}\Kaug\inv\yaug\yaug\transpose\Kaug\inv \right)
+\end{align}
+
+Now the expectation over $\fo$ is easy:
+\begin{align}
+\Exp{\fo}{\Var{\is}{\Exp{f}{\os|\is, \fo}}} &= \Tr\left( \Var{\is}{\Kaugis}\Kaug\inv \bExp{\fo}{\yaug\yaug\transpose} \Kaug\inv \right)
+\end{align}
+
+The expectation over the outer product can be done too:
+\begin{align}
+\bExp{\fo}{\yaug\yaug\transpose} = \begin{bmatrix} \vy\vy\transpose & \vy\mfo \\ \vy\transpose\mfo & \bExp{}{\fo^2} \end{bmatrix}
+\end{align}
+\begin{align}
+\mfo &= \vk_{X\fin}\transpose\K\inv\vy & \bExp{}{\fo^2} &= \fovar + \mfo^2
+\end{align}
+
+$\bExp{\fo}{\yaug\yaug\transpose}$ is not rank 1 anymore, but it can be decomposed into a $\Reals^{(N+1)\times 2}$ matrix!
+\begin{gather}
+\bExp{\fo}{\yaug\yaug\transpose} = \tilde{y}\tilde{y}\transpose \\
+\tilde{y}=\begin{bmatrix} \vy & 0 \\ \mfo & \fostd \end{bmatrix}
+\end{gather}
+
+Now we can rewrite $\Exp{\fo}{\Var{\is}{\Exp{f}{\os|\is, \fo}}}$ as a trace with $\tilde{y}$ on the outside again, which allows for much easier evaluation:
+\begin{gather}
+\Exp{\fo}{\Var{\is}{\Exp{f}{\os|\is, \fo}}} = \Tr\left(\tilde{y}\transpose \Kaug\inv \Var{\is}{\Kaugis}\Kaug\inv \tilde{y} \right) \\
+\Kaug\tilde{y} = \begin{bmatrix} \Kaug\inv\vy & 0 \\ 0 & \fostd\inv\end{bmatrix}
+\end{gather}
+\begin{align}
+\Exp{\fo}{\Var{\is}{\Exp{f}{\os|\is, \fo}}} &= \vy\transpose\K\inv\Var{\is}{\vk_{X\is}}\K\inv\vy + \Var{\is}{k_{\is\is}}\foprec
+\end{align}
+
+\section{Open questions}
+
+
+\end{document}

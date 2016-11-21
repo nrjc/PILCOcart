@@ -1,0 +1,112 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[parfill]{parskip}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[margin=2cm,nohead]{geometry}
+\usepackage{listings}
+
+\newcommand{\vct}{\boldsymbol}
+\newcommand{\xs}{\vct x_1}
+\newcommand{\xss}{\vct x_2}
+\newcommand{\xsss}{\vct x_3}
+\newcommand{\zs}{\vct z_1}
+\newcommand{\zss}{\vct z_2}
+\newcommand{\E}{\mathbb E}
+\newcommand{\V}{\mathbb V}
+\newcommand{\C}{\mathbb C}
+\newcommand{\N}{\mathcal N}
+\newcommand{\R}{\mathcal R}
+
+\title{Linear Model with Uncertainties on Parameters}
+\author{Jonas Umlauft}
+
+\begin{document}
+\maketitle
+\section{Model}
+With both parameters $A$ and $b$ unknown the stochastic linear model is defined as,
+\begin{align}
+\vct{x}^{(t+1)}\ =\ A\,\vct{x}^{(t)}\ +\ \vct{b}
+\label{mod}
+\end{align}
+where $\vct{x}^{(t)}, \vct{x}_{t-1} \in \mathbb{R}^n$ are consecutive states, $\vct{b} \in \mathbb{R}^n$ is the offset $A\in \mathbb{R}^{n \times n}$ is the slope. 
+\begin{equation}
+	\left[\begin{array}{c} \vct{x}^{(t)} \\  \vct{b} \\ A  \end{array} \right]
+	\ \sim\ 
+	\N\left( 
+		\left[\begin{array}{c} \E[\vct{x}^{(t)}]  \\ \E[\vct{b}] \\ \E[A] \end{array}\right],\  
+	\left[\begin{array}{ccc}  \V[\vct{x}^{(t)}]                &  \C[\vct{x}^{(t)},\vct{b}]   & \C[\vct{x}^{(t)},A]  \\
+                              \C[\vct{b}, \vct{x}^{(t)}]       & \V[\vct{b}]                   &  \C[A, \vct{b}]      
+                              \\ \C[A,\vct{x}^{(t)}]            & \C[\vct{b},A]                  & \V[A]
+	\end{array}\right]\right)
+\end{equation}
+\section{Useful Relationships}
+\begin{align}
+\C[A\vct{x},\vct{b}] = \E[A]\C[\vct{x},\vct{b}] + \sum_i \E[x_i] \C[\vct{a}_i,\vct{b}]
+\end{align}
+\begin{align}
+\V[A\vct{x}]    =  \sum_{l,k} & \C[\vct{a}_l,\vct{a}_k]\C[x_l,x_k]    + \C[\vct{a}_l,x_k]\C[x_l,\vct{a}_k]   + \E[\vct{a}_l] \E[\vct{a}_k] \C[x_l,x_k]   +   \E[x_l| \E[x_k] \C[\vct{a}_l,\vct{a}_k] \\
+                               &+   \E[x_l] \E[\vct{a}_k] \C[x_k,\vct{a}_l]  +   \E[x_k]  \C[\vct{a}_k, x_l ] \E[\vct{a}_l]^T 
+\end{align}
+\begin{align}          
+\E[A\vct{x}] = &\E[A]\E[\vct{x}] + \sum_i \C[\vct{a}_i, x_i]
+\end{align}
+where $\vct{a}_i$ denotes the $i$-th column of matrix $A$ .
+
+
+\section{Expected Value}
+\begin{align}
+\E[\vct{x}^{(t+1)}] &= \E[A\vct{x}^{(t)}+\vct{b}] = \E[A\vct{x}^{(t)}] + \E[\vct{b}] \\
+			  	  &= \E[A]\ \E[\vct{x}^{(t)}] +  \sum_i \C[\vct{a}_i, x_i^{(t)}]  + \E[\vct{b}] \nonumber
+\end{align}
+The expected values $\E[A]$ and $\E[\vct{b}]$ remain constant.
+\section{Variance}
+\begin{align}
+\V[\vct{x}^{(t+1)}] = &\V[A\vct{x}^{(t)}+\vct{b}]  = \V[\vct{b}] + \C[A\vct{x}^{(t)},\vct{b}]+ \C[\vct{b}, A\vct{x}^{(t)}]  + \V[A\vct{x}^{(t)}]  \\
+			        = & \V[\vct{b}]  \nonumber\\
+			          &+  \E[A]\C[\vct{x}^{(t)},\vct{b}] + \sum_i \E[x_i^{(t)}] \C[\vct{a}_i,\vct{b}] \nonumber \\
+			          &+ \C[\vct{b}, \vct{x}^{(t)}] \E[A]^T+ \sum_i \E[x_i^{(t)}] \C[\vct{b}, \vct{a}_i]  \nonumber \\
+			          &+ \sum_{l,k}  \left( \C[\vct{a}_l,\vct{a}_k]\C[x_{l}^{(t)},x_{k}^{(t)}]   + \C[\vct{a}_l,x_k^{(t)}]\C[x_l^{(t)},\vct{a}_k]   + \E[\vct{a}_l] \E[\vct{a}_k] \C[x_l^{(t)},x_k^{(t)}]   +   \E[x_l^{(t)}] \E[x_k^{(t)}] \C[\vct{a}_l,\vct{a}_k]  \right. \\
+			          &+  \left. \E[x_l^{(t)}] \E[\vct{a}_k] \C[x_k^{(t)},\vct{a}_l]  +          \E[x_k^{(t)}]  \C[\vct{a}_k, x_l^{(t)} ] \E[\vct{a}_l]^T  \right)             
+\end{align}
+
+\section{Covariances}
+\begin{align}
+\C[\vct{x}^{(t+1)},A] &= \C[Ax+b,A] = \C[Ax,A] + \C[b,A] \\
+                    &=  \E[A]\C[\vct{x}^{(t)},A] + \sum_i \E[x_i^{(t)}] \C[\vct{a}_i,A] +  \C[b,A]  \nonumber
+\end{align}
+\begin{align}
+ \C[\vct{x}^{(t+1)},\vct{b}] &= \C[A\vct{x}^{(t)} + \vct{b},\vct{b}] = \C[A\vct{x}^{(t)} ,\vct{b}] + \V[\vct{b}] \\
+ 						  &=  \E[A]\C[\vct{x}^{(t)},\vct{b}] + \sum_i \E[x_i^{(t)}] \C[\vct{a}_i,\vct{b}]+ \V[\vct{b}] \nonumber
+\end{align}
+\begin{align}
+ \C[\vct{x}^{(t+1)},\vct{x}^{(t)}] &= \C[A\vct{x}^{(t)} + \vct{b},\vct{x}^{(t)}] = \C[A\vct{x}^{(t)} ,\vct{x}^{(t)}] + \C[\vct{b}, \vct{x}^{(t)}] \\
+ 						  &=  \E[A] \V[\vct{x}^{(t)}] + \sum_i \E[x^{(t)}_i] \C[\vct{a}_i,\vct{x}^{(t)}] + \C[\vct{b},\vct{x}^{(t)}] \nonumber
+\end{align}
+The covariances $\C[\vct{b},A]$ and $\C[A,\vct{b}]$ remain constant.
+
+\section{Implementation}
+\subsection{Inputs}
+\begin{align*}
+m = \left[\begin{array}{c} \E[\vct{x}^{(t)}]  \\ \E[\vct{b}] \\ \E[A] \end{array}\right], \ \ \  \ \ 
+s = \left[\begin{array}{ccc}  \V[\vct{x}^{(t)}]                &  \C[\vct{x}^{(t)},\vct{b}]   & \C[\vct{x}^{(t)},A]  \\
+                              \C[\vct{b}, \vct{x}^{(t)}]       & \V[\vct{b}]                   &  \C[A, \vct{b}]      
+                              \\ \C[A,\vct{x}^{(t)}]            & \C[\vct{b},A]                  & \V[A]
+	\end{array}\right]
+\end{align*}
+\subsection{Outputs}
+\begin{align*}
+M = \left[\begin{array}{c} \E[\vct{x}^{(t+1)}]  \\ \E[\vct{b}] \\ \E[A] \end{array}\right], \ \ \ \ 
+S = 	\left[\begin{array}{ccc}  \V[\vct{x}^{(t+1)}]                &  \C[\vct{x}^{(t+1)},\vct{b}]   & \C[\vct{x}^{(t+1)},A]  \\
+                              \C[\vct{b}, \vct{x}^{(t+1)}]       & \V[\vct{b}]                   &  \C[A, \vct{b}]      
+                              \\ \C[A,\vct{x}^{(t+1)}]            & \C[\vct{b},A]                  & \V[A]
+	\end{array}\right], \ \ \ \ \
+V = 	\left[\begin{array}{ccc}  \C[\vct{x}^{(t)}, \vct{x}^{(t+1)}]                &  \C[\vct{x}^{(t)},\vct{b}]   & \C[\vct{x}^{(t)},A]  \\
+                              \C[\vct{b}, \vct{x}^{(t+1)}]       & \V[\vct{b}]                   &  \C[A, \vct{b}]      
+                              \\ \C[A,\vct{x}^{(t+1)}]            & \C[\vct{b},A]                  & \V[A]
+	\end{array}\right]
+\end{align*}
+
+\end{document}

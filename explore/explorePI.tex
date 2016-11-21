@@ -1,0 +1,64 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{noweb}
+\usepackage{bm}
+\usepackage{hyperref}
+
+\newcommand{\argmax}[1]{\underset{#1}{\operatorname{arg}\operatorname{max}}\;}
+\newcommand{\pdf}{\phi(\lambda)}
+\newcommand{\cdf}{\Phi(\lambda)}
+\newcommand{\sqb}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\C}{\mathcal{C}}
+
+%opening
+\title{Probability of Improvement \\ Exploration Heuristic for PILCO}
+\author{Rowan McAllister}
+
+\begin{document}
+
+\maketitle
+
+Let the parameterisation of the previous rollout be $r$,
+and the cumulative-cost distribution given the previous rollout be:
+\begin{eqnarray}
+ \C^{r} \sim \mathcal{N}(\mu_r,\sigma^2_r)
+\end{eqnarray}
+%
+We would like to choose a new parameterisation, $\theta$,
+in such a way that it maximises the \textit{probability of improvement} (P.I.) of the cumulative-cost.
+For arbitrary $\theta$ we have cumulative-cost distribution $\C^{\theta} \sim \mathcal{N}(\mu_\theta,\sigma^2_\theta)$. 
+What is the probability $P(\C^{\theta} < \C^{r})$? Let $\Delta\C \;\doteq\; \C^{\theta} - \C^{r}$. Note:
+\begin{eqnarray}
+ \Delta\C \;&\sim&\; \mathcal{N}(\mu_\theta - \mu_r, \sigma^2_\theta + \sigma^2_r - 2c)
+\end{eqnarray}
+%
+where $c$ is the covariance between $\C^{\theta}$ and $\C^{r}$. 
+Let's assume (approximate) that $c = 0$, to make life simpler.
+So now the probability of improvement, by changing parameterisation from $r$ to $\theta$ is:
+\begin{eqnarray}
+ P.I.
+ \;&=&\; P \big( \C^{\theta} < \C^{r} \big) \\
+ \;&=&\; P \big( \Delta\C < 0 \big) \\
+ \;&=&\; \int_{-\infty}^0 \mathcal{N} \big( x ; \mu_\theta-\mu_r, \sigma^2_\theta + \sigma^2_r \big) dx \label{eq:pi} \\
+ \;&=&\; 1-\Phi \Big( \underbrace{\frac{\mu_\theta-\mu_r}{\sqrt{\sigma^2_\theta + \sigma^2_r}}}_{z} \Big) \label{eq:loss}
+\end{eqnarray} 
+where $\Phi(\cdot)$ is the cumulative standard normal function.
+%
+We wish to maximise Eq~(\ref{eq:loss}), so our loss function (to minimise) is the negative P.I.:
+\begin{eqnarray}
+ L \;&=&\; \Phi (z)-1,
+\end{eqnarray}
+with gradients
+\begin{eqnarray}
+ \frac{dL}{d\mu_\theta} \;&=&\; \frac{1}{\sqrt{\sigma^2_\theta + \sigma^2_r}} \phi(z), \\
+ \frac{dL}{d\sigma^2_\theta} \;&=&\; -\frac{1}{2(\sigma^2_\theta + \sigma^2_r)} z \phi(z),
+\end{eqnarray}
+where $\phi(\cdot)$ is the standard normal distribution.
+
+\end{document}

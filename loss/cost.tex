@@ -1,0 +1,129 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[top=0.5in, bottom=0.5in, left=0.5in, right=0.5in, marginparwidth=0.5in, marginparsep=0.5in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+% \usepackage{noweb}
+\usepackage{bm}
+\usepackage{hyperref}
+
+\newcommand{\argmax}[1]{\underset{#1}{\operatorname{arg}\operatorname{max}}\;}
+\newcommand{\sqb}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\T}{^{\top}}
+
+%opening
+\title{CostSuper Function Derivations}
+\author{Rowan McAllister}
+
+\begin{document}
+
+\maketitle
+
+\section{CostSat}
+
+Define the saturating cost of a state $s$ as:
+\begin{eqnarray}
+ {\text costSat}(s) \;&\doteq&\; 1 - \exp(-(s-z)^\top W(s-z)/2)
+\end{eqnarray}
+
+\section{CostSat Covariance}
+
+The goal is to compute covariance of two {\text costSat} function outputs,
+each inputted with a different state:
+\begin{eqnarray}
+C \;& \doteq&\; \C[{\text costSat}(s_1), {\text costSat}(s_2)],
+\end{eqnarray}
+where $s_1$ is one state, and $s_2$ is another state.
+Note the covariance $C$ is non-zero if and only if states $s_1$ and $s_2$
+covary.
+%Let us denote $c_{12}\doteq\C[s_1,s_2]$.
+%
+Our aim is to re-use the functionality of {\tt costSat} already provided as
+much as possible. Let us denote
+\begin{eqnarray}
+q_i \;& \doteq&\; -(s_i-z)^\top W(s_i-z)/2, \; i \in \{1,2\}, \\
+\mu_i \;& \doteq&\; \E\sqb{{\text costSat}(s_i)}, \; i \in \{1,2\}, \\
+      \;& =&\;      \E\sqb{1- \exp(q_i)}.
+\end{eqnarray}
+Note the existing {\tt costSat} function is able to compute the expectation
+$\mu_i$.
+We begin with the covariance definition:
+\begin{eqnarray}
+ C \;&=&\; \E\sqb{{\text costSat}(s_1)\cdot{\text costSat}(s_2)} - \mu_1 \mu_2
+\\
+   \;&=&\; \E\sqb{\big( 1-\exp(q_1)\big) \big( 1-\exp(q_2)\big)}-\mu_1\mu_2 \\
+   % \;&=&\; \E\sqb{\exp(q_1)\exp(q_2)} - 1 + \mu_1 + \mu_2 - \mu_1\mu_2 \\
+   \;&=&\; \E\sqb{\exp(q_1)\exp(q_2)} - (1-\mu_1)(1-\mu_2) \\
+   \;&=&\; (1-\mu) - (1-\mu_1)(1-\mu_2)
+\end{eqnarray}
+where $\mu$ is the expectation output of the {\tt costSat} function
+with augmented parameters $\hat{z} = \sqb{z\\z}$, $\hat{W} = \sqb{W & 0 \\ 0 &
+W}$ and concatenated input $\hat{s} = \sqb{s_1\\s_2}$.
+
+\section{CostSat Moments}
+
+Using again the definition:
+\begin{eqnarray}
+ {\text costSat}(s;z,W) \;&\doteq&\; 1 - \exp(-\tfrac{1}{2}(s-z)\T W(s-z))
+\end{eqnarray}
+%
+Let $s\sim\N(m,\Sigma)$, then:
+%
+\begin{eqnarray}
+ M = \E_s[{\text costSat}(s;z,W)] &\;=\;& 1-\det(I+\Sigma W)^{-1/2} \exp\Big(-\tfrac{1}{2}(m-z)\T W (I+\Sigma W)\inv (m-z)\Big) \label{eq:E-exp-quad} \\
+ S = \V_s[{\text costSat}(s;z,W)] &\;=\;& \det(I+2\Sigma W)^{-1/2}\exp\Big(-(m-z)\T W(I+2\Sigma W)\inv(m-z)\Big) - (M-1)^2 \\
+ C = \Sigma\inv\C_s[s,\;{\text costSat}(s;z,W)] &\;=\;& (M-1)\Big(Wz - W(I+\Sigma W)\inv(\Sigma Wz+m)\Big)
+\end{eqnarray}
+%where $M$ refers to Eq.~\ref{eq:E-exp-quad}.
+
+\section{CostSat Hierarchical-Moments}
+
+Let $s\sim\N(\mu,V)$ and $\mu\sim\N(m,\Sigma)$,
+and $W' = W (I+V W)\inv$,
+and $W'' = 2W (I+2V W)\inv$: % todo: does it need to be 2^D instead of 2? This case might only work in 1D. no I think it's fine.
+
+\begin{eqnarray}
+ M' = \E_\mu[M]
+ &\;=\;& \E_\mu\left[1-\det(I+V W)^{-1/2}\exp\Big(-\tfrac{1}{2}(\mu-z)\T W' (\mu-z)\Big)\right] \\
+ &\;=\;& 1-\det(I+V W)^{-1/2} \Big(1-\E_\mu\big[{\text costSat}(\mu;z,W')\big]\Big) \\
+ &\;=\;& 1-\det\big((I+V W)(I+\Sigma W')\big)^{-1/2} \exp\Big(-\tfrac{1}{2}(m-z)\T W' (I + \Sigma W')\inv (m-z)\Big) \\
+ &\;=\;& 1-\det\big(I+(\Sigma+V)W)\big)^{-1/2} \exp\Big(-\tfrac{1}{2}(m-z)\T W(I+(\Sigma+V)W)\inv (m-z)\Big) \\
+ &\;=\;& \E[{\text costSat}(\N(m,\Sigma+V)\;;\;z,W)] \\
+ S' = \V_\mu[M]
+ &\;=\;& \V_\mu\left[\det(I+V W)^{-1/2} \exp\Big(-\tfrac{1}{2}(\mu-z)\T W' (\mu-z)\Big)\right] \\
+ &\;=\;& \det(I+V W)\inv\V_\mu\big[{\text costSat}(\mu;z,W')\big] \\
+ &\;=\;& \det(I+V W)^{-1}\left(\E_\mu\left[\exp\Big(-(\mu-z)\T W' (\mu-z)\Big)\right] - \E_\mu\left[\exp\Big(-\tfrac{1}{2}(\mu-z)\T W' (\mu-z)\Big)\right]^2\right)\\ %(M'-1)^2 \\
+ &\;=\;& \det(I+V W)^{-1}\det(I+2\Sigma W')^{-1/2}\exp\Big(-(m-z)\T W'(I+2\Sigma W')\inv(m-z)\Big) - (M'-1)^2 \\
+ &\;=\;& \det(I+V W)^{-1/2} \det(I+(V+2\Sigma) W)^{-1/2}\exp\Big(-(m-z)\T W(I+(V+2\Sigma)W)\inv(m-z)\Big) - (M'-1)^2 \\
+ %  &\;=\;& \det(I+V W)^{-1/2} \cdot \big(1 - \E[{\text costSat}(\N(m,V+2\Sigma);z,W)] \big)^2 \\
+ &\;=\;& \det(I+V W)^{-1/2} \cdot \left(\V[{\text costSat}(\N(m,(V+2\Sigma)/2);z,W)] + (\E[\cdot]-1)^2 \right) - (M'-1)^2 \\
+%  &\;=\;& \det(I+V W)^{-1}\Big(\det(I+2\Sigma W')^{-1/2}\exp\Big(-(m-z)\T W'(I+2\Sigma W')\inv(m-z)\Big) \\
+%  && - \; \det(I+\Sigma W')^{-1} \exp\Big(-(m-z)\T W' (I+\Sigma W')\inv (m-z)\Big) \Big)\\ %(M'-1)^2 \\
+%  &\;=\;& \det(I+V W)^{-1/2} \det(I+(V+2\Sigma) W)^{-1/2}\exp\Big(-(m-z)\T W(I+(V+2\Sigma)W)\inv(m-z)\Big) \\
+%  && - \; \det\big(I+(\Sigma+V)W)\big)^{-1} \exp\Big(-(m-z)\T W(I+(\Sigma+V)W)\inv (m-z)\Big)\\ %(M'-1)^2 \\
+%  %  &\;=\;& \det(I+V W)^{-1/2} \cdot \big(1 - \E[{\text costSat}(\N(m,V+2\Sigma);z,W)] \big)^2 \\
+%  &\;=\;& \det(I+V W)^{-1/2} \cdot \left(\V[{\text costSat}(\N(m,(V+2\Sigma)/2);z,W)] + (\E[\cdot]-1)^2 \right) \\
+%  && - \; \det\big(I+(\Sigma+V)W)\big)^{-1/2} \left(\V[{\text costSat}(\N(m,(V+\Sigma)/2);z,W)] + (\E[\cdot]-1)^2 \right) \\ %(M'-1)^2 \\
+%  %C'
+ %&\;=\;& ?\Sigma\inv\C_\mu[\mu,\;{\text costSat}(\mu;z,W)] \\ %\E_\mu[C]
+ %&\;=\;& ?(M'-1)\Big(Wz - W(I+\Sigma W)\inv(\Sigma Wz+m)\Big) \\
+ %&\;=\;& C ? \\
+ % &\;=\;& ? \E_\mu\left[(M-1)\Big(Wz - W(I+V W)\inv(\Sigma Wz+\mu)\Big)\right]\\
+ V' = \E_\mu[S]
+ &\;=\;& \V[{\text costSat}(\N(m,\Sigma+V);z,W)] - \V[{\text costSat}(\N(m,\Sigma);z,W)]
+ %&\;=\;& \E_\mu\left[\det(I+2V W)^{-1/2}\exp\Big(-\tfrac{1}{2}(\mu-z)\T W''(\mu-z)\Big) - (M-1)^2\right] \\
+ %&\;=\;& \det(I+2V W)^{-1/2} \Big(1-\E_\mu\left[{\text costSat}(\mu;z,W'')\right]\Big) - S'-(M'-1)^2 \\
+\end{eqnarray}
+%$\E_\mu[M^2-2M+1] = \V[M]+\E[M]^2-2\E[M]+1$
+%And note: $W' (I + \Sigma W')\inv = W(I+2\Sigma W)\inv = W''/2$.
+\end{document}
+

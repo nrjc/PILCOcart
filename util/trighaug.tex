@@ -1,0 +1,220 @@
+\documentclass{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setlength{\textwidth}{160mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\parindent}{0 mm}
+
+\newcommand{\bfa}{{\bf a}}
+\newcommand{\bfb}{{\bf b}}
+\newcommand{\bff}{{\bf f}}
+\newcommand{\bfg}{{\bf g}}
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfs}{{\bf s}}
+\newcommand{\bfz}{{\bf z}}
+\newcommand{\bfx}{{\bf x}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+\newcommand{\C}{{\mathbb C}}
+
+\title{Augment Hierarchical-Gaussian with Trigonometric Functions}
+\author{Carl Edward Rasmussen and Rowan McAllister}
+
+\begin{document}
+
+\maketitle
+
+In several contexts it is useful to be able to augment a joint
+hierarchical-Gaussian distribution with the trigonometric functions sine and cosine
+of one or more of its coordinates. The resulting distribution is not
+Gaussian, but we can compute exactly the first and second (central)
+moments of the augmented distribution. Additionally, the derivative of
+these moments wrt.~the parameters of the joint distribution are also
+computed.
+
+Let $x$ be a $D$ dimensional hierarchical-Gaussian
+\[
+\bfx\;\sim\;{\cal N}(\bfa,\,A)\;\sim\;{\cal N}({\cal N}(\bff,\,F),A),
+\]
+which we want to augment by sine and cosine of $x_i, \forall i\in I$,
+where $d$ is the number of elements in $I$, resulting in the
+$D\!+\!2d$ dimensional joint Gaussian
+\[
+\left[\!\!\begin{array}{c}\bfx\\ \bfz\end{array}\!\!\right]\;\sim\;
+{\cal N}\left(\!\left[\!\!\begin{array}{c}\bfa\\\bfb\end{array}\!\!\right],
+\left[\!\!\begin{array}{cc}A&B\\B^\top&C\end{array}\!\!\right]\!\right)\;\sim\;
+{\cal N}\left(\!{\cal N}\left(\!\left[\!\!\begin{array}{c}\bff\\
+      \bfg\end{array}\!\!\right],\,
+\left[\!\!\begin{array}{cc}F&G\\G^\top&H\end{array}\!\!\right]\!\right),
+\left[\!\!\begin{array}{cc}A&B\\B^\top&C\end{array}\!\!\right]\!\right)
+\]
+Below we derive expressions for the elements $\bfg, G$, $H$, $B$ and $C$.
+
+For the mean, we have for $i=1,\ldots,d$
+\[
+\begin{split}
+b_{2i-1}\;&=\;\E_x[\sin(x_{I(i)})]\;=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\sin(a_{I(i)}),\\
+b_{2i}\;&=\;\E_x[\cos(x_{I(i)})]\;=\;\exp(-\tfrac{1}{2}A_{I(i)I(i)})\cos(a_{I(i)}).
+\end{split}
+\]
+For the \emph{mean of the mean}, we have for $i=1,\ldots,d$
+\[
+\begin{split}
+g_{2i-1}\;&=\;\E_{a}[b_{2i-1}]\;=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\E_{a}[\sin(a_{I(i)})] \\
+g_{2i}\;&=\;\E_{a}[b_{2i}]\;=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\E_{a}[\cos(a_{I(i)})].
+\end{split}
+\]
+where
+\[
+\begin{split}
+ \E_{a}[\sin(a_{I(i)})]\;&=\;\exp(-\tfrac{1}{2}F_{I(i),I(i)})\sin(f_{I(i)}),\\
+ \E_{a}[\cos(a_{I(i)})]\;&=\;\exp(-\tfrac{1}{2}F_{I(i),I(i)})\cos(f_{I(i)}).
+\end{split}
+\]
+For the \emph{variance of the mean} we have for $i=1,\ldots,d,j=1,\ldots,D$
+\[
+\begin{split}
+ G_{j,2i-1}\;&=\;\C_a[\bfa_j,b_{2i-1}]\;=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\C_a[\bfa_j,\sin(a_{I(i)})]\\
+ \;&=\;\exp(-\tfrac{1}{2}(A_{I(i),I(i)}+F_{I(i),I(i)}))\cos(f_{I(i)})F_{j,I(i)},\\  
+ G_{j,2i}\;&=\;\C_a[\bfa_j,b_{2i}]\;=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\C_a[\bfa_j,\cos(a_{I(i)})]\\
+ \;&=\;-\exp(-\tfrac{1}{2}(A_{I(i),I(i)}+F_{I(i),I(i)}))\sin(f_{I(i)})F_{j,I(i)},
+\end{split}
+\]
+and for $i,j=1,\ldots,d$, $i\neq j$
+\[
+\begin{split}
+ H_{2i-1,2i-1}\;&=\;\V_a[b_{2i-1}]=\alpha_{i}\V_{a}[\sin(a_{I(i)})]\\
+ H_{2i,2i}\;&=\;\V_a[b_{2i}]=\alpha_{i}\V_{a}[\cos(a_{I(i)})]\\
+ H_{2i,2i-1}\;=\;H_{2i-1,2i}\;&=\;\C_a[b_{2i-1},b_{2i}]=\alpha_{i}\C_a[\sin(a_{I(i)}),\cos(a_{I(i)})]\\
+ H_{2i-1,2j-1}\;&=\;\C_a[b_{2i-1},b_{2j-1}]=\alpha_{ij}\C_a[\sin(a_{I(i)}),\sin(a_{I(j)})]\\
+ H_{2i,2j}\;&=\;\C_a[b_{2i},b_{2j}]=\alpha_{ij}C_a[\cos(a_{I(i)}),\cos(a_{I(j)})]\\
+ H_{2i,2j-1}\;&=\;\C_a[b_{2i},b_{2j-1}]=\alpha_{ij}\C_a[\cos(a_{I(i)}),\sin(a_{I(j)})]\\
+ H_{2i-1,2j}\;&=\;\C_a[b_{2i-1},b_{2j}]=\alpha_{ij}\C_a[\sin(a_{I(i)}),\cos(a_{I(j)})]
+\end{split}
+\]
+where
+\[
+\begin{split}
+ \alpha_{i}\;&=\;\exp(-A_{I(i),I(i)})\\
+ \alpha_{ij}\;&=\;\exp(-\tfrac{1}{2}(A_{I(i),I(i)}+A_{I(j),I(j)}))\\
+ \V_{a}[\sin(a_{I(i)})]\;&=\;\beta_i(1+\exp(-F_{I(i),I(i)})\cos(2f_{I(i)}))\\
+ \V_{a}[\cos(a_{I(i)})]\;&=\;\beta_i(1-\exp(-F_{I(i),I(i)})\cos(2f_{I(i)}))\\
+ \C_{a}[\sin(a_{I(i)}),\cos(a_{I(i)})]\;&=\;-\beta_i\exp(-F_{I(i),I(i)})\sin(2f_{I(i)})\\
+ %
+ \C_{a}[\sin(a_{I(i)}),\sin(a_{I(j)})]\;&=\;\beta_{ij}([\exp(F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!-\!f_{I(j)})-
+ [\exp(-F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!+\!f_{I(j)}))\\
+ \C_{a}[\cos(a_{I(i)}),\cos(a_{I(j)})]\;&=\;\beta_{ij}([\exp(F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!-\!f_{I(j)})+
+ [\exp(-F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!+\!f_{I(j)}))\\
+ \C_{a}[\cos(a_{I(i)}),\sin(a_{I(j)})]\;&=\;\beta_{ij}(-[\exp(F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}
+ \!-\!f_{I(j)})+[\exp(-F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}\!+\!f_{I(j)}))\\
+ \C_{a}[\sin(a_{I(i)}),\cos(a_{I(j)})]\;&=\;\beta_{ij}([\exp(F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}
+ \!-\!f_{I(j)})+[\exp(-F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}\!+\!f_{I(j)}))\\
+ %
+ \beta_i\;&=\;\tfrac{1}{2}(1-\exp(-F_{I(i),I(i)})) \\
+ \beta_{ij}\;&=\;\tfrac{1}{2}\exp(-\tfrac{1}{2}(F_{I(i),I(i)}+F_{I(j),I(j)}))
+\end{split}
+\]
+For the \emph{mean of the variance} we have for $i=1,\ldots,d,j=1,\ldots,D$
+\[
+\begin{split}
+B_{j,2i-1}\;&=\;\E_a[\C_x[\bfx_j,\sin(\bfx_{I(i)})]]\;=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\E_{a}[\cos(a_{I(i)})]A_{j,I(i)},\\  
+B_{j,2i}\;&=\;\E_a[\C_x[\bfx_j,\cos(\bfx_{I(i)})]]\;=\;-\exp(-\tfrac{1}{2}A_{I(i),I(i)})\E_{a}[\sin(a_{I(i)})]A_{j,I(i)},
+\end{split}
+\]
+and for $i,j=1,\ldots,d$, $i\neq j$
+\[
+\begin{split}
+C_{2i-1,2i-1}\;&=\;q_i(1+\exp(-A_{I(i),I(i)})\E_{a}[\cos(2a_{I(i)})])\\
+C_{2i,2i}\;&=\;q_i(1-\exp(-A_{I(i),I(i)})\E_{a}[\cos(2a_{I(i)})])\\
+C_{2i,2i-1}\;=\;C_{2i-1,2i}\;&=\;-q_i\exp(-A_{I(i),I(i)})\E_{a}[\sin(2a_{I(i)})]\\
+C_{2i-1,2j-1}\;&=\;q_{ij}([\exp(A_{I(i),I(j)})\!-\!1]\E_{a}[\cos(a_{I(i)}\!-\!a_{I(j)})]-
+[\exp(-A_{I(i),I(j)})\!-\!1]\E_{a}[\cos(a_{I(i)}\!+\!a_{I(j)})])\\
+C_{2i,2j}\;&=\;q_{ij}([\exp(A_{I(i),I(j)})\!-\!1]\E_{a}[\cos(a_{I(i)}\!-\!a_{I(j)})]+
+[\exp(-A_{I(i),I(j)})\!-\!1]\E_{a}[\cos(a_{I(i)}\!+\!a_{I(j)})])\\
+C_{2i,2j-1}\;&=\;q_{ij}(-[\exp(A_{I(i),I(j)})\!-\!1]\E_{a}[\sin(a_{I(i)}
+\!-\!a_{I(j)})]+[\exp(-A_{I(i),I(j)})\!-\!1]\E_{a}[\sin(a_{I(i)}\!+\!a_{I(j)})])\\
+C_{2i-1,2j}\;&=\;q_{ij}([\exp(A_{I(i),I(j)})\!-\!1]\E_{a}[\sin(a_{I(i)}
+\!-\!a_{I(j)})]+[\exp(-A_{I(i),I(j)})\!-\!1]\E_{a}[\sin(a_{I(i)}\!+\!a_{I(j)})]),
+\end{split}
+\]
+where 
+\[
+\begin{split}
+ q_i\;&=\;\tfrac{1}{2}(1-\exp(-A_{I(i),I(i)})) \\
+ q_{ij}\;&=\;\tfrac{1}{2}\exp(-\tfrac{1}{2}(A_{I(i),I(i)}+A_{I(j),I(j)})) \\
+ \E_{a}[\sin(2a_{I(i)})]\;&=\;\gamma_{i}\sin(2f_{I(i)}),\\
+ \E_{a}[\cos(2a_{I(i)})]\;&=\;\gamma_{i}\cos(2f_{I(i)}),\\
+ \E_{a}[\sin(a_{I(i)}\!+\!a_{I(j)})]\;&=\;\gamma_{ij}^+\sin(f_{I(i)}+f_{I(j)}),\\
+ \E_{a}[\sin(a_{I(i)}\!-\!a_{I(j)})]\;&=\;\gamma_{ij}^-\sin(f_{I(i)}-f_{I(j)}),\\
+ \E_{a}[\cos(a_{I(i)}\!+\!a_{I(j)})]\;&=\;\gamma_{ij}^+\cos(f_{I(i)}+f_{I(j)}),\\
+ \E_{a}[\cos(a_{I(i)}\!-\!a_{I(j)})]\;&=\;\gamma_{ij}^-\cos(f_{I(i)}-f_{I(j)}),\\
+ \gamma_{i}\;&=\;\exp(-2F_{I(i),I(i)})\\
+ \gamma_{ij}^+\;&=\;\exp(-\tfrac{1}{2}(F_{I(i),I(i)}+2F_{I(i),I(j)}+F_{I(j),I(j)})),\\
+ \gamma_{ij}^-\;&=\;\exp(-\tfrac{1}{2}(F_{I(i),I(i)}-2F_{I(i),I(j)}+F_{I(j),I(j)})).\\ 
+\end{split}
+\]
+
+
+\section*{Summary}
+Let 
+\[
+\begin{split}
+ \hat{a} \;&=\; f,\\
+ \hat{A} \;&=\; A+F,\\
+ q^f_{ij}\;&=\;\tfrac{1}{2}\exp(-\tfrac{1}{2}(F_{I(i),I(i)}+F_{I(j),I(j)}))\\
+ \hat{q}_{ij}\;&=\;q_{ij}q^f_{ij}\;=\;\tfrac{1}{2}\exp(-\tfrac{1}{2}(\hat{A}_{I(i),I(i)}+\hat{A}_{I(j),I(j)})) \\
+\end{split}
+\]
+For the \emph{mean of the mean}, we have for $i=1,\ldots,d$
+\[
+\begin{split}
+g_{2i-1}\;&=\;\exp(-\hat{A}_{I(i),I(i)}/2)\sin(\hat{a}_{I(i)}),\\
+g_{2i}\;&=\;\exp(-\hat{A}_{I(i)I(i)}/2)\cos(\hat{a}_{I(i)}).
+\end{split}
+\]
+For the \emph{variance of the mean} we have for $i=1,\ldots,d,j=1,\ldots,D$
+\[
+\begin{split}
+ G_{j,2i-1}\;&=\;\exp(-\tfrac{1}{2}\hat{A}_{I(i),I(i)})\cos(f_{I(i)})F_{j,I(i)},\\  
+ G_{j,2i}\;&=\;-\exp(-\tfrac{1}{2}\hat{A}_{I(i),I(i)})\sin(f_{I(i)})F_{j,I(i)},
+\end{split}
+\]
+and for $i,j=1,\ldots,d$, $i\neq j$
+\[
+\begin{split}
+ H_{2i-1,2j-1}\;&=\;2q_{ij}q^f_{ij}([\exp(F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!-\!f_{I(j)})-[\exp(-F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!+\!f_{I(j)}))\\
+ H_{2i,2j}\;&=\;2q_{ij}q^f_{ij}([\exp(F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!-\!f_{I(j)})+[\exp(-F_{I(i),I(j)})\!-\!1]\cos(f_{I(i)}\!+\!f_{I(j)}))\\
+ H_{2i,2j-1}\;&=\;2q_{ij}q^f_{ij}(-[\exp(F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}\!-\!f_{I(j)})+[\exp(-F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}\!+\!f_{I(j)}))\\
+ H_{2i-1,2j}\;&=\;2q_{ij}q^f_{ij}([\exp(F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}\!-\!f_{I(j)})+[\exp(-F_{I(i),I(j)})\!-\!1]\sin(f_{I(i)}\!+\!f_{I(j)}))\\
+\end{split}
+\]
+% ---------------------------
+For the \emph{mean of the variance} we have for $i=1,\ldots,d,j=1,\ldots,D$
+\[
+\begin{split}
+B_{j,2i-1}\;&=\;\exp(-\tfrac{1}{2}\hat{A}_{I(i),I(i)})\cos(f_{I(i)})A_{j,I(i)},\\  
+B_{j,2i}\;&=\;-\exp(-\tfrac{1}{2}\hat{A}_{I(i),I(i)})\sin(f_{I(i)})A_{j,I(i)},
+\end{split}
+\]
+and for $i,j=1,\ldots,d$, $i\neq j$
+{\small
+\[
+\begin{split}
+C_{2i-1,2j-1}\;&=\;q_{ij}q^f_{ij}([\exp(\hat{A}_{I(i),I(j)})\!-\!\exp(F_{I(i),I(j)})]\cos(f_{I(i)}-f_{I(j)})-[\exp(-\hat{A}_{I(i),I(j)})\!-\!\exp(-F_{I(i),I(j)})]\cos(f_{I(i)}+f_{I(j)}))\\
+C_{2i,2j}\;&=\;q_{ij}q^f_{ij}([\exp(\hat{A}_{I(i),I(j)})\!-\!\exp(F_{I(i),I(j)})]\cos(f_{I(i)}-f_{I(j)})+[\exp(-\hat{A}_{I(i),I(j)})\!-\!\exp(-F_{I(i),I(j)})]\cos(f_{I(i)}+f_{I(j)}))\\
+C_{2i,2j-1}\;&=\;q_{ij}q^f_{ij}(-[\exp(\hat{A}_{I(i),I(j)})\!-\!\exp(F_{I(i),I(j)})]\sin(f_{I(i)}-f_{I(j)})+[\exp(-\hat{A}_{I(i),I(j)})\!-\!\exp(-F_{I(i),I(j)})]\sin(f_{I(i)}+f_{I(j)}))\\
+C_{2i-1,2j}\;&=\;q_{ij}q^f_{ij}([\exp(\hat{A}_{I(i),I(j)})\!-\!\exp(F_{I(i),I(j)})]\sin(f_{I(i)}-f_{I(j)})+[\exp(-\hat{A}_{I(i),I(j)})\!-\!\exp(-F_{I(i),I(j)})]\sin(f_{I(i)}+f_{I(j)})),
+\end{split}
+\]
+}
+\end{document}
+
+% 2sin(A)sin(B) = cos(A-B)-cos(A+B)
+% 2cos(A)cos(B) = cos(A-B)+cos(A+B)
+% 2sin(A)cos(B) = sin(A-B)+cos(A+B)

@@ -1,0 +1,8 @@
+1) changed naming convention: gp.target -> gp.targets  (training targets of dynamics model or controller)
+2) no more tprod
+3) no gpa*, gpc*, gpi*
+4) no NIGP
+5) no multiple dynamics models etc.
+6) introduced plotting.verbosity (new variable)
+7) only linear/RBF controller
+8) no more trigaug/trigSquash

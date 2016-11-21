@@ -1,0 +1,1045 @@
+\documentclass[9pt]{article}
+
+%\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[section]{placeins}  % prevents placing floats before the section
+\usepackage{titling}  % pulls title up
+\usepackage[top=0.5in, bottom=0.5in, left=0.3in, right=0.3in, marginparwidth=0.5in, marginparsep=0.5in]{geometry}
+
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfs}{{\bf s}}
+\newcommand{\bfz}{{\bf z}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+\newcommand{\Cov}{{\mathbb C}}
+\newcommand{\GP}{{\mathcal GP}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\cellg}{} %{\cellcolor{black!5}}
+\newcommand{\m}[1]{m_{#1}}                  % i.e. {m_{#1}}     or {\mu_{#1}}
+\newcommand{\s}[1]{S_{#1}}                  % i.e. {S_{#1}}     or {\Sigma_{#1}}
+\newcommand{\C}[1]{C_{#1}}
+\newcommand{\Sn}{\s{\epsilon}}              % observation noise variance
+\newcommand{\trg}[1]{#1^\circ}              % i.e. {#1^\circ_t} or {trg(#1)}        (i.e. 'trigonometry')
+\newcommand{\old}[1]{#1_{t\mathord{-}1}}
+\newcommand{\now}[1]{#1_t}                  % i.e. {#1_t}       or {#1}
+\newcommand{\nwt}[1]{{#1_t^\circ}}          % now trig
+\newcommand{\new}[1]{#1_{t\mathord{+}1}}    % i.e. {#1_{t+1}}   or {#1'}
+% \newcommand{\pno}[1]{#1_{t,t\mathord{-}1}}  % Prediction step NOw, Kalman filter, http://en.wikipedia.org/wiki/Kalman_filter
+% \newcommand{\uno}[1]{#1_{t,t}}              % Update     step NOw, Kalman filter, wrt a noisy sensor observation
+% \newcommand{\uot}[1]{\uno{#1}^\circ}        % Update     step nOw Trig, Kalman filter, wrt a noisy sensor observation
+% \newcommand{\pne}[1]{#1_{t\mathord{+}1,t}}  % Prediction step NEw, Kalman filter
+\newcommand{\pno}[1]{#1_{t}}  % Prediction step NOw, Kalman filter, http://en.wikipedia.org/wiki/Kalman_filter
+\newcommand{\uno}[1]{#1_{tt}}              % Update     step NOw, Kalman filter, wrt a noisy sensor observation
+\newcommand{\uot}[1]{\uno{#1}^\circ}       % Update     step nOw Trig, Kalman filter, wrt a noisy sensor observation
+\newcommand{\pne}[1]{#1_{t\mathord{+}1}}   % Prediction step NEw, Kalman filter
+\newcommand{\tnl}{\\ \hline}
+\newcommand{\inv}{^{-1}}
+\newcommand{\invt}{^{-\top}}
+\newcommand{\matharray}[1]{\vspace{-0.25cm} \[ \begin{array}{l} #1 \end{array} \] \vspace{-0.4cm}}
+\newcommand{\itab}[1]{\hspace{0em}\rlap{#1}}
+\newcommand{\tab}[1]{\hspace{.1\textwidth}\rlap{#1}}
+\newcommand{\nnn}{\nonumber \\}
+\newcommand{\nn}{\nonumber}
+\definecolor{lgrey}{rgb}{0.8,0.8,0.8}
+\definecolor{grey}{rgb}{0.5,0.5,0.5}
+\definecolor{plum}{rgb}{0.4,0.0,0.8}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\orange}[1]{\textcolor{orange}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\green}[1]{\textcolor{green}{#1}}
+\newcommand{\purple}[1]{\textcolor{plum}{#1}}
+\newcommand{\magenta}[1]{\textcolor{magenta}{#1}}{
+\newcommand{\grey}[1]{\textcolor{grey}{#1}}
+\newcommand{\w}[1]{\textcolor{white}{#1}}
+\newcommand{\K}[1]{\blue{C}_{#1}}
+\newcommand{\Ko}[1]{\orange{C}_{#1}}
+\newcommand{\Kg}[1]{\grey{C}_{#1}}
+
+% tikz grouping
+\usetikzlibrary{trees,positioning,fit,arrows,decorations.pathreplacing}
+
+% to footnotes in the tabular environment
+\usepackage{footnote}
+\makesavenoteenv{tabular}
+
+% Gaussians plots
+\pgfmathdeclarefunction{gauss}{2}{%
+  \pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
+\newcommand{\gausstikz}[5]{ % #1 = r.v. description, #2 = r.v., #3 = mean (in eqn), #4 mean (on axis), #5 variance (in eqn).
+\begin{tikzpicture}
+\begin{axis}[
+  no markers,
+  domain=-3.2:3.2,
+  samples=200,
+  axis lines*=left,
+  xlabel={$\lowercase{#2}$},
+  every axis x label/.style={at=(current axis.right of origin),anchor=west},
+  title={#1 $#2\sim\N(#3,#5)$},
+  height=2.3cm, width=4.6cm,
+  xtick={0},
+  xticklabels={$#4$},
+  ytick=\empty,
+  enlargelimits=false, clip=false, axis on top,
+  grid = major
+  ]
+\addplot [thick,black!50!black] {gauss(0,1)};
+\end{axis}
+\end{tikzpicture}
+}
+\newcommand{\gaussplot}[6]{
+\begin{figure}[!h]
+\centering
+\gausstikz{#1}{#2}{#3}{#4}{#5}
+\caption*{#6}
+\end{figure}
+}
+
+% must be after algorithm package:
+\usepackage{hyperref}
+
+% -----------------------
+
+\setlength{\droptitle}{-5em} % pulls title up
+\title{Controller with Bayes Filter (\texttt{ctrlBF.m})}
+\author{Rowan McAllister}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+To control a dynamical system well we need to be able to estimate the current state of a system.
+Let us denote the latent system-state at time $t$ as $\now{x}$.
+We'll also assume a simple observation model
+whereby our system's sensors periodically output a noisy version of the current system-state:
+$\now{y} = \now{x} + \epsilon$, where $\epsilon$ is a Gaussian white noise vector.
+%
+A straightforward method of estimating $\now{x}$ is thus to use the current sensor observation $\now{y}$,
+which can be inputted directly into our controller, depicted Fig.~\ref{fig:unfilteredSystem}:
+%
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[->,>=stealth',scale=1,skip loop/.style={to path={-- ++(0,#1) -| (\tikztotarget)}}]
+\node [matrix,matrix anchor=mid, column sep=70pt, row sep=30pt, ampersand replacement=\&,nodes={rectangle,draw}] {
+\node[draw=none] (00) {}; \&
+\node (0) {System}; \&
+\node (1) {Sensors}; \&
+\node (3) {Controller}; \\
+};
+\path[every node/.style={font=\sffamily\small},rounded corners=5pt]
+  (00) edge node [above] {increment $t$} (0)
+  (0) edge node [above] {$\now{x}$} (1)
+  (1) edge node [above] {$\now{y}$ (noisy $\now{x}$)} (3)
+  (3) edge [skip loop=-7mm] (0) node [shift={(-2.0,-0.5)}] {$\now{u}$}
+;
+\end{tikzpicture}
+\caption{System using raw sensor signal for controller input.}
+\label{fig:unfilteredSystem}
+\end{figure}
+
+The above solution may be adequate for low noise levels $\epsilon$,
+but fail catastrophically otherwise.
+If large $\epsilon$ noise levels are directly injected into a controller configured with high gain parameters,
+the system will react wildly and may destabilise.
+To account for noisy sensors, we can \textit{filter} the observation signal $\now{y}$ before input into the controller,
+shown Fig.~\ref{fig:filteredSystem}:
+%
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[->,>=stealth',scale=1,skip loop/.style={to path={-- ++(0,#1) -| (\tikztotarget)}}]
+\node [matrix,matrix anchor=mid, column sep=85pt, row sep=30pt, ampersand replacement=\&,nodes={rectangle,draw}] {
+\node[draw=none] (00) {}; \&
+\node (0) {System}; \&
+\node (1) {Sensors}; \&
+\node (2) {Filter}; \&
+\node (3) {Controller}; \\
+};
+\path[every node/.style={font=\sffamily\small},rounded corners=5pt]
+  (00) edge node [above] {increment $t$} (0)
+  (0) edge node [above] {$\now{x}$} (1)
+  (1) edge node [above] {$\now{y}$ (noisy $\now{x}$)} (2)
+  (2) edge node [above] {$\E[\now{x}|{y}_{1:t},u_{1:t-1}]$} (3)
+  (3) edge [skip loop=-7mm] (2) node [shift={(-2.0,-0.5)}] {$\now{u}$}
+  (3) edge [skip loop=-7mm] (0)
+;
+\end{tikzpicture}
+\caption{System with filtered controller input.}
+\label{fig:filteredSystem}
+\end{figure}
+
+A Bayes filter (BF) maintains a belief-posterior on $x$, denoted $\pne{B}$,
+conditioned on all information available thus far:
+the entire history of the system observations $y_{1:t}$ and applied control signals $u_{1:t-1}$.
+Conditioning on more information than the current observation $\now{y}$ yields a more informed
+(thus accurate) estimate of $\now{x}$.
+Being a function of all observations,
+$\pne{B}$ is less susceptible to the noise injected into the most recent observation $\now{y}$,
+and consequently the controller's input is much smoother.
+To maintain $\pne{B}$ the BF makes two recursive updates per timestep:
+\begin{enumerate}
+ \item Update step:
+ Compute $\uno{B}$ using prior belief $\pno{B} = p(\now{x})$ and observation likelihood
+ $\mathcal{L}(\now{x}|\now{y}) = p(\now{y}|\now{x})$,
+ \item Predict step:
+ Compute $\pne{B}$ by mapping updated belief $\uno{B}$ through transition model
+ $p(\new{x}|\now{x},\now{u})$.
+\end{enumerate}
+A directed graphical model of a Bayes filter is shown Fig.~\ref{fig:graph}:
+%
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[->,>=stealth',scale=1, transform shape]
+\node [matrix,matrix anchor=mid, column sep=30pt, row sep=30pt, ampersand replacement=\&,nodes={circle,draw}] {
+\node             (x0)  {$\now{X}$}; \&
+                                     \&
+\node             (x1)  {$\new{X}$}; \\
+\node[fill=lgrey] (y0)  {$\now{Y}$}; \&
+\node[fill=lgrey] (u)   {$\now{U}$}; \&
+\node[fill=lgrey] (y1)  {$\new{Y}$}; \\
+\node[fill=lgrey] (b00) {$\pno{B}$}; \&
+\node[fill=lgrey] (b10) {$\uno{B}$}; \&
+\node[fill=lgrey] (b11) {$\pne{B}$}; \\
+};
+\draw [->] (b00) to (b10) ;
+\draw [->] (x0) to (y0) ;
+\draw [->] (y0) to (b10) ;
+\draw [->] (b10) to (u) ;
+\draw [->] (b10) to (b11) ;
+\draw [->] (u) to (b11) ;
+\draw [->] (u) to (x1) ;
+\draw [->] (x0) to (x1) ;
+\draw [->] (x1) to (y1) ;
+%
+\node[fit=(b00)(b10)(b11)](b){};
+\draw[-,line width=1pt,orange,decorate,decoration={amplitude=7pt,brace}] (b.north east) -- (b.south east);
+\node[right=of b]{Controller's Belief/Filter State};
+%
+\node[fit=(y0)(u)(y1)](yu){};
+\draw[-,line width=1pt,green,decorate,decoration={amplitude=7pt,brace}] (yu.north east) -- (yu.south east);
+\node[right=of yu]{Controller-System Interface: Observations and Control Signals};
+%
+\node[fit=(x0)(x1)](x){};
+\draw[-,line width=1pt,blue,decorate,decoration={amplitude=7pt,brace}] (x.north east) -- (x.south east);
+\node[right=of x]{Latent System State};
+\end{tikzpicture}
+\caption{Directed graphical model of a system using a Bayes filter.
+A dynamical system begins in state $\now{X}$,
+which sensors observe noisily as $\now{Y}$.
+The observation $\now{Y}$ is fused with the filter's prior on plausible system-states $\pno{B}$,
+resulting in a posterior $\uno{B}$.
+The controller uses $\uno{B}$ to decide control signal $\now{U}$.
+Finally, the control signal $\now{U}$ is applied to the system, resulting in new state $\new{X}$,
+and also used by the BF to predict the system-state in the next time step $\pne{B}$.}
+\label{fig:graph}
+\end{figure}
+
+%The transition model is more complex, $p(\new{x}|\now{x},\now{u}) \sim \GP(m(),k(,))$.
+
+
+% ------------------------------------------------------------------------
+
+
+\section{\texttt{ctrlBF.m} Inputs and Outputs}
+
+\subsubsection*{Terminology and Notation:}
+\begin{enumerate} \itemsep0em
+\item The subscripts:
+ \begin{itemize}
+  \item \itab{$\pno{}$} \tab{pertains to the current BF predicted state;}
+  \item \itab{$\uno{}$} \tab{pertains to the current BF updated state w.r.t. noisy observation $\now{y}$;}
+  \item \itab{$\pne{}$} \tab{pertains to the next BF prediction state w.r.t. dynamics model $\T$.}
+ \end{itemize}
+\item The circle superscript $^\circ$ denotes the \textit{trigonometric} sin/cos angles of its operand.
+\item Random variables and matrices are capitalised.
+\end{enumerate}
+
+\subsection{\texttt{ctrlBF.m} Inputs}
+A state-struct $\now{s}$ is inputted with fields:
+%
+% TODO: C_zx or C_zy?
+\begin{itemize} \itemsep0em
+ \item \itab{$\m{\now{y}}$}  \tab{observation mean,}
+ \item \itab{$\s{\now{y}}$}  \tab{observation variance,}
+ \item \itab{$\m{\pno{z}}$}  \tab{prior filter mean-of-mean,}
+ \item \itab{$\s{\pno{z}}$}  \tab{prior filter variance-of-mean,}
+ \item \itab{\texttt{zc}}    \tab{$\C{\now{x}\pno{z}}$: covariance of state and prior filter mean,}
+ \item \itab{$\pno{V}$}      \tab{prior filter variance.}
+\end{itemize}
+
+\subsection{\texttt{ctrlBF.m} Local Variables}
+Block variables $M$, $S$ and $V$ are progressively expanded to
+(\blue{blue} indicates computed with \texttt{fillIn} function,
+\orange{orange} indicates only required when state representation is $>$ 1 Markov
+\orange{grey} indicates what was though to be required when state representation is $>$ 1 Markov)),
+:
+%
+\begin{figure}[h!]
+\begin{subfigure}[b]{0.12\textwidth}
+  \centering
+  \begin{tabular}{|>{$}l<{$}|} \hline
+    \m{\now{x}}  \tnl
+    \m{\pno{z}}  \tnl
+    \m{\uno{z}}  \tnl
+    \m{\uot{z}}  \tnl
+    \m{\now{u}}  \tnl
+    \m{\pne{z}}  \tnl
+  \end{tabular}
+  \caption*{Block mean $M$}
+\end{subfigure}
+ ~
+ \begin{subfigure}[b]{0.7\textwidth}
+  \centering
+  \begin{tabular}{|>{$}l<{$}|>{$}l<{$}|>{$}l<{$}|>{$}l<{$}|>{$}l<{$}|>{$}l<{$}|>{$}l<{$}|} \hline % using \w{} to indicate those terms which are not used within CtrlBf.m
+     \s{\now{x}}         &    \C{\now{x}\pno{z}}  & \w{\C{\now{x}\uno{z}}} & \w{\C{\now{x}\uot{z}}} & \w{\C{\now{x}\now{u}}} & \w{\C{\now{x}\pne{z}}} \tnl
+     \C{\pno{z}\now{x}}  &    \s{\pno{z}}         & \w{\C{\pno{z}\uno{z}}} & \w{\C{\pno{z}\uot{z}}} &   \Kg{\pno{z}\now{u}}  &   \Kg{\pno{z}\pne{z}}  \tnl
+  \w{\C{\uno{z}\now{x}}} & \w{\C{\uno{z}\pno{z}}} &    \s{\uno{z}}         &    \K{\uno{z}\uot{z}}  &    \K{\uno{z}\now{u}}  &   \Ko{\uno{z}\pne{z}}  \tnl
+  \w{\C{\uot{z}\now{x}}} & \w{\C{\uot{z}\pno{z}}} &    \K{\uot{z}\uno{z}}  &    \s{\uot{z}}         & \w{\C{\uot{z}\now{u}}} & \w{\C{\uot{z}\pne{z}}} \tnl
+  \w{\C{\now{u}\now{x}}} &   \Kg{\now{u}\pno{z}}  &    \K{\now{u}\uno{z}}  & \w{\C{\now{u}\uot{z}}} &    \s{\now{u}}         &    \K{\now{u}\pne{z}}  \tnl
+  \w{\C{\pne{z}\now{x}}} &   \Kg{\pne{z}\pno{z}}  &   \Ko{\pne{z}\uno{z}} & \w{\C{\pne{z}\uot{z}}} &    \K{\pne{z}\now{u}}  &    \s{\pne{z}}          \tnl
+  \end{tabular}
+  \caption*{Block variance $S$}
+\end{subfigure}
+ ~
+\begin{subfigure}[b]{0.13\textwidth}
+  \centering
+  \begin{tabular}{|>{$}l<{$}|} \hline
+    \cellg   \tnl
+    \pno{V}  \tnl
+    \uno{V}  \tnl
+    \uot{V}  \tnl
+    \cellg   \tnl
+    \pne{V}  \tnl
+  \end{tabular}
+  \caption*{Diagonal blocks of \\ block variance $V$}
+\end{subfigure}
+\end{figure}
+
+\subsection{\texttt{ctrlBF.m} Outputs}
+%
+\begin{itemize} \itemsep0em
+ \item \itab{$M_{ctrl}$}  \tab{control signal mean,}
+ \item \itab{$S_{ctrl}$}  \tab{control signal variance,}
+ \item \itab{$C_{ctrl}$}  \tab{$S_{\now{x}}\inv \Cov[\now{X},\now{U}]$, inverse state variance times
+                          input-state output-control covariance (derived App.~\ref{app:cov-ctrl}),}
+ \item \itab{$\new{s}$}   \tab{state-struct with predicted filter fields:}
+\begin{itemize} \itemsep0em
+ \item \itab{$\m{\now{y}}$}  \tab{observation mean (unchanged),}
+ \item \itab{$\s{\now{y}}$}  \tab{observation variance (unchanged),}
+ \item \itab{$\m{\pne{z}}$}  \tab{predicted filter mean-of-mean (derived Table~\ref{table:propagate}),}
+ \item \itab{$\s{\pne{z}}$}  \tab{predicted filter variance-of-mean (derived Table~\ref{table:propagate}),}
+ \item \itab{\texttt{zc}}    \tab{$\C{\new{x},\pne{z}}$: covariance of state and predicted filter mean (derived App.~\ref{app:s.zc}),}
+ \item \itab{$\pne{V}$}      \tab{predicted filter variance (derived Table~\ref{table:rollout},~\ref{table:propagate}).}
+\end{itemize}
+\end{itemize}
+
+
+\newpage % ------------------------------------------------------------------------
+
+
+\section{Rollouts with \texttt{ctrlBF.m}}
+
+We define a simulation of a system's possible evolution up to horizon $H$ as a `rollout'.
+As a system transitions from state $\now{x}$ to $\new{x}$,
+the controller's Gaussian belief-distribution $\pno{B}$ will evolve w.r.t. simulated observations $\now{y}$
+and control signals $\now{u}$ at each point in time $t$.
+We use lower case $x$ and $u$ to signify point masses, not distributions.
+A real-world test of system progresses as a rollout also (the only difference being observations are read from hardware, not simulated). A rollout proceeds as follows in Table~\ref{table:rollout}:
+
+\vspace{0.5cm}
+\begin{table}[h]
+\begin{tabular}{|>{\centering\arraybackslash}m{7.5cm} |>{\centering\arraybackslash}m{0.60cm} |>{\centering\arraybackslash}m{10.0cm}|}
+\hline \vspace{0.1cm}{\Large\sc System State} & \cellg & \vspace{0.1cm}{\Large\sc Controller's Belief}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\now{x}$ & \cellg & $\downarrow$ $\pno{B}$
+\\ \hline % --------------------------------------------------------------
+Observation: sample $\now{y}$ from $\N(\now{x},\Sn)$
+& $\now{y}$ $\rightarrow$
+& \gausstikz{Updated Controller State:}{\uno{B}}{\uno{z}}{\uno{z}}{\uno{V}}
+ \matharray{
+ \uno{V} = (\pno{V}\inv + \Sn\inv)\inv \\
+ \uno{z} = \uno{V}(\pno{V}\inv \pno{z} + \Sn\inv \now{y}) = w_z \pno{z} + w_y \now{y}
+}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\now{x}$ & \cellg & $\downarrow$ $\uno{B}$
+\\ \hline % --------------------------------------------------------------
+New Latent State: $\new{x} = \text{simulate}(\now{x}, \now{u})$
+& $\now{u}$ $\leftarrow$
+&
+Controller signal: $\now{u} = \text{policy}(\uno{z},\uot{z})$where
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\new{x}$ & \cellg & $\downarrow$ $\uno{B}$, $\now{u}$
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\new{x}$
+& \cellg
+& \gausstikz{Predicted Controller State:}{\pne{B}}{\pne{z}}{\pne{z}}{\pne{V}}
+\matharray{
+ \text{m-code: } \{ \pne{z}, C, \pne{V} \} = \\
+ \hspace{0.7cm} \text{gph} \Big( \T,
+ \begin{bmatrix} \uno{z} \\ \now{u} \end{bmatrix},
+ \uno{V} \Big)
+}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\new{x}$ & \cellg & $\downarrow$ $\pne{B}$
+\\ \hline % --------------------------------------------------------------
+\end{tabular}
+\caption{Rollout Flowchart.}
+\label{table:rollout}
+\end{table}
+
+
+\newpage % ------------------------------------------------------------------------
+
+
+\section{Propagate with \texttt{ctrlBF.m}}
+
+Training our controller requires computing the value function: the expected loss over possible futures.
+Unfortunately a rollout will only simulate how one possible future may be reached.
+Instead, we consider a continuum of possible futures as a distribution on the latent states $\now{X}$.
+The initial latent state $X_0$ may be a point mass, but after one timestep $X_1$ will be a distribution owing to inherent system stochasticity (or `process noise').
+As our belief defines a belief-distribution over each plausible latent state,
+our belief $\pno{B} \sim \N(\pno{z},\pno{V})$ is thus redefined as a distribution over distributions.
+We define a different belief distributions using a distribution on belief mean parameter: $\pno{Z} = \N(\m{\pno{z}},\s{\pno{z}})$.
+We make the simplifying approximation that $\pno{V}$ is constant across each latent state $\now{X}$.
+Thus, our Gaussian belief distribution with an uncertain mean parameter is therefore
+a hierarchical Gaussian distribution function: $\pno{B} = \N(\pno{Z},\pno{V}) = \N(\N(\m{\pno{z}},\s{\pno{z}}),\pno{V})$.
+We define the evolution of this richer belief function over time as a `propagation', seen Table~\ref{table:propagate}:
+
+\vspace{0.5cm}
+\begin{table}[h]
+\begin{tabular}{|>{\centering\arraybackslash}m{7.5cm} |>{\centering\arraybackslash}m{0.60cm} |>{\centering\arraybackslash}m{10.0cm}|}
+\hline \vspace{0.1cm}{\Large\sc System States} & \cellg & \vspace{0.1cm}{\Large\sc Controller's Beliefs}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\now{X} \sim \N (\m{\now{x}},\s{\now{x}})$ & \cellg & $\downarrow$ $\pno{B}$
+\\ \hline % --------------------------------------------------------------
+\gausstikz{Observation:}{\now{Y}}{\N(\m{\now{x}}\text{,}\s{\now{x}})}{\now{X}}{\Sn}
+\matharray{
+ \now{Y} \sim \N(\m{\now{y}},\s{\now{y}}) \\
+ \m{\now{y}} = \E[\now{Y}] = \m{\now{x}} \\
+ \s{\now{y}} = \V[\now{Y}] = \s{\now{x}} + \Sn
+}
+& $\now{Y}$ $\rightarrow$
+& \gausstikz{Updated Controller State:}{\uno{B}}{\N(\m{\uno{z}}\text{,}\s{\uno{z}})}{\uno{Z}}{\uno{V}}
+ \matharray{
+ \uno{V} = (\pno{V}\inv + \Sn\inv)\inv \\
+ \uno{Z}\sim\N(\m{\uno{z}},\s{\uno{z}}) \\
+ \uno{Z} = \uno{V}(\pno{V}\inv \pno{Z} + \Sn\inv \now{Y}) = w_z \pno{Z} + w_y \now{Y} \\
+ \m{\uno{z}} = w_z \m{\pno{z}} + w_y \m{\now{y}} \\
+ \s{\uno{z}} = [w_z, w_y]
+ \begin{bmatrix} \s{\pno{z}} & \C{\pno{z}\now{x}} \\ \C{\now{x}\pno{z}} & \s{\now{y}} \end{bmatrix}
+ \begin{bmatrix} w_z^\top \\ w_y^\top \end{bmatrix} \\
+ {[} \C{\uno{z}\pno{z}},\C{\uno{z}\now{x}} {]} = [w_z, w_y]
+ \begin{bmatrix} \s{\pno{z}} & \C{\pno{z}\now{x}} \\ \C{\now{x}\pno{z}} & \s{\now{x}} \end{bmatrix}
+}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\now{X}$ & \cellg & $\downarrow$ $\uno{B}$
+\\ \hline % --------------------------------------------------------------
+\gausstikz{New Latent State: }{\new{X}}{\m{\new{x}}}{\m{\new{x}}}{\s{\new{x}}}
+\matharray{
+ \text{m-code: } \{ \m{\new{x}}, \s{\new{x}}, C \} = \\
+ \hspace{0.7cm} \text{gph} \Big( \T,
+ \begin{bmatrix} \m{\now{x}} \\ \m{\now{u}} \end{bmatrix},
+ \begin{bmatrix} \s{\now{x}} & \C{\now{x}\now{u}} \\ \C{\now{u}\now{x}} & \s{\now{u}} \end{bmatrix}
+ \Big)
+}
+& $\now{U}$ $\leftarrow$
+&
+\gausstikz{Controller signal:}{\now{U}}{\m{\now{u}}}{\m{\now{u}}}{\s{\now{u}}}
+\matharray{
+ \text{Policy } \pi: \begin{bmatrix} \m{\uno{z}} \\ \m{\uot{z}} \end{bmatrix} \times \begin{bmatrix} \s{\uno{z}} & \C{\uno{z}\uot{z}}  \\ \C{\uot{z}\uno{z}} & \s{\uot{z}} \end{bmatrix} \rightarrow \m{\now{u}} \times\s{\now{u}}
+}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\new{X}$ & \cellg & $\downarrow$ $\uno{B}$, $\now{U}$
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\new{X}$
+& \cellg
+& \gausstikz{Predicted Controller State:}{\pne{B}}{\N(\m{\pne{z}}\text{,}\s{\pne{z}})}{\pne{Z}}{\pne{V}}
+\matharray{
+ \pne{Z}\sim\N(\m{\pne{z}},\s{\pne{z}}) \\
+ \text{m-code: } \{ \m{\pne{z}}, \s{\pne{z}}, C, \pne{V} \} = \\
+ \hspace{0.7cm} \text{gph} \Big( \T,
+ \begin{bmatrix} \m{\uno{z}} \\ \m{\now{u}} \end{bmatrix},
+ \begin{bmatrix} \s{\uno{z}} & \C{\uno{z},\now{u}} \\ \C{\now{u},\uno{z}} & \s{\now{u}} \end{bmatrix},
+ \uno{V} \Big)
+}
+\\ \hline % --------------------------------------------------------------
+$\downarrow$ $\new{X}$ & \cellg & $\downarrow$ $\pne{B}$
+\\ \hline % --------------------------------------------------------------
+\end{tabular}
+\caption{Propagate Flowchart.}
+\label{table:propagate}
+\end{table}
+
+\subsection{Comments:}
+
+\begin{enumerate} \itemsep0em
+\item Although future values of $Y$ are currently unknown, we already know our strength-of-belief in $Y$ will be $\Sn$.
+\item Note the controller outputs real numbers, not distributions. However, a distribution over future control signals exists since we are currently uncertain about what the value of $Z$ will be. We also (for now) assume the controller is a function of the belief-mean $Z$ only, and not also a function of strength-of-belief $V$.
+ \item We can express the joint probability of all uncertain and hierarchically-uncertain terms involved: \\
+ $\begin{bmatrix} \pno{Z} \\ \pno{B} \\ \now{X} \\ \now{Y} \end{bmatrix}
+ \sim \mathcal{N} \begin{pmatrix}
+ \begin{bmatrix} \m{\pno{z}} \\ \m{\pno{z}} \\ \m{\now{x}} \\ \m{\now{x}} \end{bmatrix},
+ \begin{bmatrix} \s{\pno{z}}        & \s{\pno{z}}         & C_{\now{x}\pno{z}}^\top & C_{\now{x}\pno{z}}^\top \\
+                 \s{\pno{z}}        & \s{\pno{z}}+\pno{V} & C_{\now{x}\pno{z}}^\top & C_{\now{x}\pno{z}}^\top \\
+                 C_{\now{x}\pno{z}} & C_{\now{x}\pno{z}}  & \s{\now{x}}             & \s{\now{x}}             \\
+                 C_{\now{x}\pno{z}} & C_{\now{x}\pno{z}}  & \s{\now{x}}             & \s{\now{x}}+\Sn
+ \end{bmatrix} \end{pmatrix}$.
+ \item \texttt{ctrlBF.m} instead uses rearranged expressions for $\uno{V}$ and $\m{\uno{z}}$:
+ \begin{enumerate} \itemsep0em
+  \item $\uno{V} = \Sn (\pno{V} + \Sn)\inv \pno{V} = \pno{V}(\pno{V} + \Sn)\inv \Sn$,
+  \item $\m{\uno{z}}= \Sn(\pno{V} + \Sn)\inv \m{\pno{z}} + \pno{V}(\pno{V} + \Sn)\inv \m{\now{y}}$.
+ \end{enumerate}
+\end{enumerate}
+
+\subsection{Pseudocode}
+
+Let $s$ represent the system state, $\trg{s}$ the augmented system state, $b$ the filter state, $\trg{b}$ the augmented filter state, $u$ the control signal (either point masses, distributions, or hierarchical distributions). A particular parameterisation of the controller is evaluated with:
+
+\vspace{0.5cm}
+
+\framebox{\parbox{\textwidth}{ % []
+\noindent
+total cost up to horizon, $\frac{d \text{ total cost up to horizon}}{d p}$ $\leftarrow$ \texttt{value}($s$, @\texttt{ctrlBF} parameterised by $p$, @\texttt{dynmodel}, @\texttt{cost})
+
+\vspace{0.3cm}\hspace{0.1cm} \textbf{FOR} time = now to horizon: \vspace{-0.1cm}
+\begin{enumerate}
+ \item $s_\text{predicted}$, $\frac{\partial s_\text{predicted}}{\partial \{s,p\}}$ $\leftarrow$ \texttt{propagate}($s$, $b$)
+ \begin{enumerate}
+  \item initialise $\frac{\partial s_\text{predicted}}{\partial \{s,p\}}$
+  \item $u$, $\frac{\partial s_\text{predicted}}{\partial \{s,p\}}$ $\leftarrow$ \texttt{ctrlBF}($b$, $s$, $\frac{\partial s_\text{predicted}}{\partial \{s,p\}}$)
+  \begin{enumerate}
+   \item $b_{\text{updated}}$ $\leftarrow$ \texttt{update}($b$, $s$ noisily observed)
+   \item $\trg{b_{\text{updated}}}$ $\leftarrow$ \texttt{gTrig}($b_{\text{updated}}$)
+   \item $u$ $\leftarrow$ \texttt{ctrlBF.policy}($b_{\text{updated}}$)
+   \item $b_\text{predicted}$ $\leftarrow$ \texttt{ctrlBF.dynmodel}($b_{\text{updated}}$, $\trg{b_{\text{updated}}}$, $u$)
+   \item contribute to $\frac{\partial s_\text{predicted}}{\partial \{s,p\}}$
+  \end{enumerate}
+  \item $\trg{s}$ $\leftarrow$ \texttt{gTrig}($s$)
+  \item $s_\text{predicted}$ $\leftarrow$ \texttt{dynmodel}($s$, $\trg{s}$, $u$)
+  \item contribute to $\frac{\partial s_\text{predicted}}{\partial \{s,p\}}$
+ \end{enumerate}
+ \item update $\frac{d s_\text{predicted}}{d p}$
+ \item cost, $\frac{\partial \text{cost}}{\partial s_\text{predicted}}$ $\leftarrow$ \texttt{cost}($s_\text{predicted}$)
+ \item update total cost so far and $\frac{d \text{ total cost so far}}{d p}$
+ \item $s \leftarrow s_\text{predicted}$
+\end{enumerate}
+\hspace{0.1cm} ENDFOR
+}}
+
+\vspace{0.5cm}
+
+\noindent
+The controller is then trained using policy search: minimising total cost by descending the $\frac{d \text{ total cost up to horizon}}{d p}$ gradient.
+
+
+\newpage
+\appendix % ------------------------------------------------------------------------
+
+\section{Derivation of $\Cov[\now{M},\uno{Z}]$:}
+
+Let $\now{M} \doteq \left[\!\begin{array}{c}\now{X}\\\pno{Z}\!\end{array}\right]$, and
+$C_{xz} \doteq \Cov[\now{X},\pno{Z}]$, then
+
+\begin{eqnarray}
+\orange{\Cov[\now{M},\uno{Z}]} =
+\begin{bmatrix} \Cov[\now{X},\uno{Z}] \\ \Cov[\pno{Z},\uno{Z}] \end{bmatrix}
+&=& \begin{bmatrix} \Cov[\now{X},w_y \now{Y} + w_z \pno{Z}] \\ \Cov[\pno{Z},w_y \now{Y} + w_z \pno{Z}] \end{bmatrix} \nnn
+&=& \begin{bmatrix} S_{\now{X}} w_y^\top + C_{xz} w_z^\top \\ C_{zx} w_y^\top + S_{\pno{Z}} w_z^\top\end{bmatrix} \nnn
+&=& \underbrace{\begin{bmatrix} S_{\now{X}} + C_{xz} \\ C_{zx} + S_{\pno{Z}}\end{bmatrix}}_{S_{\now{M}}} \underbrace{[w_y,w_z]^\top}_{w^\top} \nnn
+&=& S_{\now{M}} w^\top
+\end{eqnarray}
+
+\section{Derivation of $\Cov[\uno{Z},\now{U}]$:} %\label{app:cov-ctrl}
+
+We begin with:
+\begin{eqnarray}
+ \Cov[\{\uno{Z};\uot{Z}\},\now{U}] &=& S_{\{\uno{Z},\uot{Z}\}} \underbrace{C_{poli}[\{\uno{Z},\uot{Z}\},\now{U}]}_{p} \nnn
+ \begin{bmatrix} \blue{\Cov[\uno{Z},\now{U}]} \\ \Cov[\uot{Z},\now{U}] \end{bmatrix} &=& \begin{bmatrix} S_{\uno{Z}} & \Cov[\uno{Z},\uot{Z}] \\ \Cov[\uot{Z},\uno{Z}] & S_{\uot{Z}} \end{bmatrix} p \nnn
+ \therefore \blue{\Cov[\uno{Z},\now{U}]} &=& [ S_{\uno{Z}} , \Cov[\uno{Z},\uot{Z}] ] p \nnn
+                          &=& S_{\uno{Z}} \underbrace{[ I , C_{gtrig}[\uno{Z},\uot{Z}] ]}_{g} p \nnn
+                          &=& S_{\uno{Z}} g p \label{eq:czu1}
+\end{eqnarray}
+
+\section{Derivation of $\Cov[\now{M},\now{U}]$:} %\label{app:cov-ctrl}
+
+\begin{eqnarray}
+\Cov[\now{M},\now{U}]
+&=& \orange{\Cov[\now{M},\uno{Z}]} S_{\uno{Z}}\inv \blue{\Cov[\uno{Z},\now{U}}] \text{\hspace{1.0cm}(\red{TODO: prove})} \nnn
+&=& S_{\now{M}} w^\top gp \nn
+\end{eqnarray}
+
+\vspace{1.0cm}
+
+\medskip\noindent\framebox{\parbox{\textwidth}{
+\texttt{ctrlNF.m} case:
+\begin{eqnarray}
+ \Cov[\{\now{Y},\nwt{Y}\},\now{U}]
+   &=& S_{\{\now{Y},\nwt{Y}\}} C_{poli}[\{\now{Y},\nwt{Y}\},\now{U}] \nnn
+ \begin{bmatrix} \purple{\Cov[\now{Y},\now{U}]} \\ \Cov[\nwt{Y},\now{U}] \end{bmatrix}
+   &=& \begin{bmatrix} S_{\now{Y}} & \Cov[\now{Y},\nwt{Y}] \\ \Cov[\nwt{Y},\now{Y}] & S_{\nwt{Y}} \end{bmatrix} C_{poli}[\{\now{Y},\nwt{Y}\},\now{U}] \nnn
+ \therefore \purple{\Cov[\now{Y},\now{U}]}
+   &=& [ S_{\now{Y}} , \Cov[\now{Y},\nwt{Y}] ] C_{poli}[\{\now{Y},\nwt{Y}\},\now{U}] \nnn
+   &=& S_{\now{Y}} [I , C_{gtrig}[\now{Y},\nwt{Y}] ] C_{poli}[\{\now{Y},\nwt{Y}\},\now{U}] \nn
+\end{eqnarray}
+%
+And as a set of weights:
+\begin{eqnarray}
+  \Cov[\now{X},\now{U}] &=& S_{\now{X}}[I , C_{gtrig}[\now{Y},\nwt{Y}] ] C_{poli}[\{\now{Y},\nwt{Y}\},\now{U}]  \nn
+\end{eqnarray}
+}}
+
+\section{Derivation of $\Cov[\uno{Z},\pne{Z}]$:} %\label{sec:cov-pnoz-pnez}
+
+\begin{eqnarray}
+ \Cov[\{\uno{Z},\now{U}\},\pne{Z}] &=& S_{\{\uno{Z},\now{U}\}} \underbrace{C_{dyn}[\{\uno{Z},\now{U}\},\pne{Z}]}_{d_z} \nnn
+ \begin{bmatrix} \green{\Cov[\uno{Z},\pne{Z}]} \\ \Cov[\now{U},\pne{Z}] \end{bmatrix} &=& \begin{bmatrix} S_{\uno{Z}} & \blue{\Cov[\uno{Z},\now{U}]} \\ \Cov[\now{U},\uno{Z}] & S_{\now{U}} \end{bmatrix} d_z \nnn
+ \therefore \green{\Cov[\uno{Z},\pne{Z}]} &=& [ S_{\uno{Z}} , \blue{\Cov[\uno{Z},\now{U}]} ] d_z \nnn
+ &=& S_{\uno{Z}} [ I , gp ] d_z \grey{\hspace{1.0cm} \text{using Eq.~\ref{eq:czu1}}} \label{eq:cov-zuno-zpne}
+\end{eqnarray}
+
+\section{Derivation of $\Cov[\pno{M},\pne{Z}]$:} %\label{sec:cov-pnoz-pnez}
+\begin{eqnarray}
+\Cov[\now{M},\pne{Z}]
+&=& \orange{\Cov[\pno{M},\uno{Z}]} S_{\uno{Z}}\inv \green{\Cov[\uno{Z},\pne{Z}]} \text{\hspace{1.0cm}(\red{TODO: prove})} \nnn
+&=& S_{\now{M}} w^\top [ I , gp ] d_z \label{eq:cov-m-zpne}
+\end{eqnarray}
+
+\section{Derivation of \texttt{ctrlBF.m}'s Output $C_{ctrlbf}$:}
+\begin{eqnarray}
+C_{ctrlbf}
+&\doteq& S_{\now{M}}\inv \Cov[\now{M},\{\now{U};\pne{Z}\}] \nnn
+&=& S_{\now{M}}\inv \begin{bmatrix} \Cov[\now{M},\now{U}], & \Cov[\now{M},\pne{Z}] \end{bmatrix} \nnn
+&=& \begin{bmatrix} w^\top gp, & w^\top [ I , gp ] d_z \end{bmatrix}
+\end{eqnarray}
+
+\section{Derivation of $\Cov[\pno{M},\new{X}]$:}
+\begin{eqnarray}
+ \Cov[\now{M},\new{X}]
+ &=& \Cov[\now{M},\{\now{X};\now{U}\}\V[\{\now{X};\now{U}\}]\inv \Cov[\{\now{X};\now{U}\},\new{X}] \nnn
+ &=& \begin{bmatrix} \Cov[\now{M},\now{X}], & \Cov[\now{M},\now{U}] \end{bmatrix} \underbrace{C_{\text{propdyn}}[\{\now{X};\now{U}\},\new{X}]}_{d_x} \nnn
+ &=& S_{\now{M}} \begin{bmatrix} \begin{bmatrix} I \\ 0 \end{bmatrix}, & w^\top gp \end{bmatrix} d_x \label{eq:cov-m-xnew}
+\end{eqnarray}
+
+\section{Derivation of \texttt{propagate.m}'s Output $C_{prop}$:} \label{app:cprop2}
+Let $\new{M} \doteq \left[\!\begin{array}{c}\new{X}\\\pne{Z}\!\end{array}\right]$.
+Goal is to compute:
+\begin{eqnarray}
+C_{prop} &\doteq& S_{\now{M}}\inv \Cov[\now{M}, \new{M}] \nn
+\end{eqnarray}
+
+\subsection{\texttt{propagate.m} with ctrlBF}
+
+By combining Eq~\ref{eq:cov-m-zpne} and Eq~\ref{eq:cov-m-xnew} we have:
+\begin{eqnarray}
+C^{BF}_{prop}
+&=& S_{\now{M}}\inv \Cov[\now{M}, \{\new{X} ; \pne{Z}\}] \nnn
+&=& S_{\now{M}}\inv \begin{bmatrix} \Cov[\now{M}, \new{X}], & \Cov[\now{M}, \pne{Z}] \end{bmatrix} \nnn
+&=& \begin{bmatrix} \begin{bmatrix} \begin{bmatrix} I \\ 0 \end{bmatrix}, & w^\top gp \end{bmatrix} d_x, & w^\top [ I , gp ] d_z \end{bmatrix} \nnn
+&=& \begin{bmatrix} \begin{bmatrix} \texttt{eye(F,D)}, & \texttt{C\_ctrlbf(1:U)} \end{bmatrix} \texttt{d\_x},
+    & \texttt{C\_ctrlbf(U+1:end)} \end{bmatrix} \nn
+\end{eqnarray}
+
+% TODO write out how C_ctrlbf is used here
+
+\subsection{\texttt{propagate.m} with ctrlNF}
+
+\begin{eqnarray}
+C^{NF}_{prop}
+&=& S_{\now{X}}\inv \Cov[\now{X}, \new{X}] \nnn
+&=& \begin{bmatrix} I, & gp \end{bmatrix} d_x \nnn
+&=& [I, C_{ctrlnf}] d_x \nn
+\end{eqnarray}
+
+\subsection{\texttt{propagate.m} with ctrlBF, and exact $\Cov[\now{M}, \new{M}]$}
+
+\begin{eqnarray}
+C^{BF}_{propExact}
+ &=& S_{\now{M}}\inv \Cov[\now{M}, \new{M}] \nnn
+ &=& S_{\now{M}}\inv \Cov[\now{M}, \{\now{X} ; \uno{Z} ; \now{U}\}] \underbrace{\V[\now{X};\uno{Z};\now{U}]\inv \Cov[[\now{X};\uno{Z};\now{U}], \new{M}]}_{C_{gphJoint}} \nnn
+ &=& \begin{bmatrix} \begin{bmatrix} I \\ 0 \end{bmatrix}, w^\top, w^\top gp \end{bmatrix} C_{gphJoint} \nn
+\end{eqnarray}
+
+\section{Derivation of $\Cov[\new{X},\pne{Z}]$:}
+
+Using the top half of Eq.~\ref{eq:cov-m-zpne} to express $\Cov[\now{X},\pne{Z}]$,
+and part of Eq.~\ref{eq:cov-zuno-zpne} to express $\Cov[\now{U},\pne{Z}]$,
+we have:
+\begin{eqnarray}
+\Cov[\new{X},\pne{Z}]
+ &=& \underbrace{\Cov[\new{X},\{\now{X};\now{U}\}]\V[\{\now{X};\now{U}\}]\inv}_{d_x^\top}
+     \Cov[\{\now{X};\now{U}\},\pne{Z}] \nnn
+ &=& d_x^\top \begin{bmatrix} \Cov[\now{X},\pne{Z}] \\ \Cov[\now{U},\pne{Z}]\end{bmatrix} \nnn
+ &=& d_x^\top \begin{bmatrix} [S_{\now{X}},\Cov[\now{X},\pno{Z}]] w^\top [ I , gp ] d_z \\
+                              [\Cov[\now{U},\uno{Z}],\;S_{\now{U}}]d_z\end{bmatrix} \nnn
+ &=& d_x^\top \begin{bmatrix} [S_{\now{X}},C_{xz}] w^\top [ I , gp ] \\
+                              [p^\top g^\top S_{\uno{Z}},\;S_{\now{U}}] \end{bmatrix} d_z \nn
+\end{eqnarray}
+
+% Alternative?
+% \begin{eqnarray}
+% \Cov[\new{X},\pne{Z}]
+%  &=& \underbrace{\Cov[\new{X},\{\now{X};\now{U}\}]\V[\{\now{X};\now{U}\}]\inv}_{d_x^\top}
+%      \Cov[\{\now{X};\now{U}\},\pne{Z}] \nnn
+%  &=& d_x^\top \begin{bmatrix} \Cov[\now{X},\pne{Z}] \\ \Cov[\now{U},\pne{Z}]\end{bmatrix} \nnn
+%  &=& d_x^\top \begin{bmatrix} [S_{\now{X}},\Cov[\now{X},\pno{Z}]] w^\top [ I , gp ] d_z \\
+%                               [\Cov[\now{U},\uno{Z}],\;S_{\now{U}}]d_z\end{bmatrix} \nnn
+%  &=& d_x^\top \begin{bmatrix} [S_{\now{X}},C_{\now{X},\pno{Z}}] w^\top [ I , gp ] d_z \\
+%                               [p^\top g^\top S_{\uno{Z}},\;S_{\now{U}}]d_z\end{bmatrix} \nn
+% \end{eqnarray}
+
+\section{Derivation of Exact $\Cov[\new{X};\pne{Z}]$:} \label{app:s.zc}
+
+Goal is (with help from propagate.m's computation of $\new{X}$) to compute:
+\begin{eqnarray}
+%\new{s}.\texttt{zc} &\triangleq& S_{\new{x}}\inv \Cov[\new{X},\pne{Z}] \nn
+\new{s}.\texttt{zc} &\triangleq& \Cov[\new{X},\pne{Z}]. \nn
+\end{eqnarray}
+%
+We simplify our graphical model (Fig.~\ref{fig:graph}) such that $\new{X}$ and $\pne{B}$
+are the output of two $\GP$s with a common input, seen Fig.\ref{fig:graph-szc}:
+%
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[->,>=stealth',scale=1, transform shape]
+\node [matrix,matrix anchor=mid, column sep=20pt, row sep=10pt, ampersand replacement=\&,nodes={circle,draw}] {
+                                           \& \node (x1) {$\new{X}$};  \\
+\node (xub10) {$\now{X},\uno{B},\now{U}$}; \&                          \\
+                                           \& \node (b11) {$\pne{Z}$}; \\
+};
+\draw [->] (xub10) to (x1) ;
+\draw [->] (xub10) to (b11) ;
+\end{tikzpicture}
+\caption{Simplified directed graphical model of Fig.~\ref{fig:graph}.}
+\label{fig:graph-szc}
+\end{figure}
+
+\noindent
+The only tricky bit is $\new{X}$ and $\pne{Z}$ use different (yet overlapping) subsets
+of the now common input $\{\now{X},\uno{B},\now{U}\}$.
+The common input's joint expression is given below, where \blue{$\new{X}$'s subset $\Sigma_x$ is blue},
+\red{$\pne{Z}$'subset $\Sigma_z$ and $V_z$ is red}, and where they \purple{overlap $\Sigma_{xz}$ is purple}.
+%
+\begin{eqnarray}
+ \underbrace{\begin{bmatrix} \now{X} \\ \uno{B} \\ \now{U} \end{bmatrix}}_{y}
+ &\sim& \mathcal{N}  \begin{pmatrix} \mathcal{N} \begin{pmatrix}
+ \underbrace{\begin{bmatrix} \blue{\m{\now{x}}} \\ \red{\m{\uno{z}}} \\ \purple{\m{\now{u}}} \end{bmatrix}}_{m},
+ \underbrace{\begin{bmatrix}
+  \blue{\s{\now{x}}}         & \C{\now{x},\uno{z}}       & \blue{\C{\now{x},\now{u}}} \\
+  \C{\uno{z},\now{x}}        & \red{\s{\uno{z}}}         & \red{\C{\uno{z},\now{u}}}  \\
+  \blue{\C{\now{u},\now{x}}} & \red{\C{\now{u},\uno{z}}} & \purple{\s{\now{u}}}       \\
+ \end{bmatrix}}_{\Sigma} \end{pmatrix} ,
+ \underbrace{\begin{bmatrix}
+  0 & 0             & 0 \\
+  0 & \red{\uno{V}} & 0 \\
+  0 & 0             & 0 \\
+ \end{bmatrix}}_{V}
+ \end{pmatrix}. \label{eq:richerinputs}
+\end{eqnarray}
+%
+To re-express $\Lambda_x$ to match the size of $\Sigma$ (Eq.~\ref{eq:richerinputs})
+whilst encoding the fact that
+$\new{X}$ is conditionally independent of $\uno{B}$ given $\now{X}$ and $\now{U}$,
+we set the new diagonal elements corresponding to $\uno{Z}$ as $\infty$:
+%
+\begin{eqnarray}
+\Lambda_x = \text{diag}(\lambda_{x},\lambda_{u}) &\rightarrow& \hat{\Lambda}_x = \text{diag}(\lambda_{x},\infty,\lambda_{u}), \nnn
+\Lambda_z = \text{diag}(\lambda_{z},\lambda_{u}) &\rightarrow& \hat{\Lambda}_z = \text{diag}(\infty,\lambda_{z},\lambda_{u}). \nn
+\end{eqnarray}
+%
+Now to compute the covariance of $\GP_x$'s output and $\GP_z$'s output given the common uncertain input ($\m,\Sigma$) of both $\GP$s,
+we use the following identity from gph.pdf
+(noting that the inverse of a matrix $A$ whose element $A_{ij} = \infty$,
+is s.t. $(A\inv)_{kl} = 0$ if $k = j$ or $l=i$,
+otherwise populated by values of submatrix $(M_{I \backslash \{i\},J \backslash \{j\}})\inv$):
+%
+\begin{eqnarray}
+\Cov[\new{X},\pne{Z}]
+\;&=&\;\Cov[f_x^*,f_z^*|\bfm,\Sigma]\;
+=\;s_x^2s_z^2\big[\beta_x^\top (Q^{xz}-q^xq^{z\top})\beta_z \big]
++C_x^\top\Sigma\theta_z+\theta_x^\top\Sigma C_z+\theta_x^\top\Sigma\theta_z, \nn
+\end{eqnarray}
+%
+where
+%
+\begin{eqnarray}
+% q^x:
+q^x_i
+\;&=&\;q(y_i,\bfm,\hat{\Lambda}_x,\Sigma+V), \nnn
+\;&=&\;|\hat{\Lambda}_x\inv (\Sigma+V)+I|^{-1/2}\exp\big(-\tfrac{1}{2}(y_i-\bfm)[\hat{\Lambda}_x+\Sigma+V]\inv(y_i-\bfm)\big), \nnn
+\;&=&\;|\Lambda_x\inv (\Sigma_x + V_x)+I|^{-1/2}\exp\big(-\tfrac{1}{2}(x_i-\bfm_x)[\Lambda_x+\Sigma_x+V_x]\inv(x_i-\bfm_x)\big), \nnn
+\;&=&\; q(x_i,\bfm_x,\Lambda_x,\Sigma_x+V_x), \nnn
+% q^z:
+q^z_i\;&=&\;q(y_i,\bfm,\hat{\Lambda}_z,\Sigma+V), \nnn
+\;&=&\; q(z_i,\bfm_z,\Lambda_z,\Sigma_z+V_z), \nnn
+% Q:
+Q^{xz}_{ij}\;&=&\;Q\big(y_i,y_j,\hat{\Lambda}_x,\hat{\Lambda}_z,V,\bfm,\Sigma\big), \nnn
+\;&=&\; c_2\,q(y_i,m,\Lambda_x,V_x)\,q(y_j,m,\Lambda_z,V_z)
+\exp\big(\tfrac{1}{2}{\bf r}^\top\big[(\hat{\Lambda}_x+V)\inv+(\hat{\Lambda}_z+V)\inv+\Sigma^{-1}\big]^{-1}{\bf r}\big), \nnn
+%\;&=&\; c_2\,q(x_i,m_x,\Lambda_x,0)\,q(z_j,m_z,\Lambda_z,0) \times
+%\exp\big(\tfrac{1}{2}{\bf r}^\top\big[\hat{\Lambda}_x^{-1}+\hat{\Lambda}_z^{-1}+\Sigma^{-1}\big]^{-1}{\bf r}\big), \nnn
+% r:
+{\bf r}\;&=&\;(\hat{\Lambda}_x+V)\inv(y_i-m)+(\hat{\Lambda}_z+V)\inv(y_j-m), \nnn
+% c_2:
+c_2&=&\big|\big((\hat{\Lambda}_x+V)\inv+(\hat{\Lambda}_z+V)\inv\big)\Sigma+I\big|^{-1/2}. \nn
+\end{eqnarray}
+%
+We see the extended dimensionality has had no effect on the values on $q^x$ and $q^z$ (size $n \times E$).
+The value of $Q^{xz}$ (size $E \times E$), however, is dependent on each element of the $\Sigma$ matrix,
+thus we must compute the full $\Sigma$.
+
+\subsection*{Old Actions}
+
+Let $(\cdot)^p$ signify the predicted state variables, and $(\cdot)^r$ signify the rest of the state (e.g. subset of the previous state if the state representation is $>1$ order Markov, $(\now{X})_{E+U:D}$, and the previous action $\now{U}$)
+E.g. $\new{X} = [\new{X}^r ; \new{X}^p] = [(\now{X})_{E+U:D} ; \now{U}; \new{X}^p]$. The joint of $\new{X}$ and $\pne{Z}$ is given in Fig.~\ref{fig:zc}:
+%
+\begin{figure}[!h]
+\centering
+\begin{eqnarray}
+ \V \begin{bmatrix} \new{X} \\ \pne{Z} \end{bmatrix} =
+ \V \begin{bmatrix} \new{X}^r \\ \new{X}^p \\ \new{Z}^r \\ \new{Z}^p \\\end{bmatrix} &=&
+ \begin{bmatrix}
+  \V[\new{X}^r              ] & \Cov[\new{X}^r,\new{X}^p] & \blue{\Cov[\new{X}^r  , \new{Z}^r]} & \blue{\Cov[\new{X}^r, \new{Z}^p]} \\
+  \Cov[\new{X}^p  ,\new{X}^r] &   \V[\new{X}^p          ] & \blue{\Cov[\new{X}^p  , \new{Z}^r]} &  \red{\Cov[\new{X}^p, \new{Z}^p]} \\
+  \Cov[\new{Z}^r  ,\new{X}^r] & \Cov[\new{Z}^r,\new{X}^p] &         \V[\new{Z}^r             ]  &       \Cov[\new{Z}^r, \new{Z}^p]  \\
+  \Cov[\new{Z}^p  ,\new{X}^r] & \Cov[\new{Z}^p,\new{X}^p] &       \Cov[\new{Z}^p  , \new{Z}^r]  &         \V[\new{Z}^p           ]  \\
+ \end{bmatrix}. \nn
+\end{eqnarray}
+\caption{We compute $\red{\Cov[\new{X}^p,\pne{Z}^p]}$ using \texttt{gph.m}. The full $\blue{\Cov[\new{X},\pne{Z}]}$ is composed of the blue and red members.}
+\label{fig:zc}
+\end{figure}
+
+\subsection*{Linear Approximations}
+
+\underline{$\Cov[\new{X},\pne{Z}]$}: \\
+Computing $\Cov[\new{X},\pne{Z}]$ is an expensive bottleneck for {\tt ctrlBF.m}.
+We can instead approximate $\Cov[\new{X},\pne{Z}]$, by assuming that both $\new{X}$, and $\pne{Z}$,
+are linear functions of $[\now{X};\uno{B};\now{U}]$.
+Both predictions use a dynamics model each,
+which outputs covariance information with implicit premultiplied-input-variance-inverses,
+$C_{dynx}$ and $C_{dynz}$, seen in Fig.~\ref{fig:graph-szc-linear}.
+We can treat $C_{dynx}$ and $C_{dynz}$ as fixed weights, i.e.
+$\new{X} \approx C^{\top}_{dynx}[\now{X};\uno{B};\now{U}]$, and
+$\pne{Z} \approx C^{\top}_{dynz}[\now{X};\uno{B};\now{U}]$.
+Thus $\Cov[\new{X},\pne{Z}] \approx C^{\top}_{dynx} \V[[\now{X};\uno{B};\now{U}]] C_{dynz}$.
+
+\medskip
+
+\noindent
+\underline{$\V[\new{X}]\inv\Cov[\new{X},\pne{Z}]$}: \\
+Alternatively, we might be interested in approximating the covariance with the following implicit inverse $\V[\new{X}]\inv\Cov[\new{X},\pne{Z}]$.
+We can use the above linear approximations.
+Let us decompose PSD $\Sigma = V^T D V = V^T D^{\tfrac{1}{2}}D^{\tfrac{1}{2}} V = L^\top L$. And define $A = C^{\top}_{dynx}L^\top$.
+We have:
+\begin{eqnarray}
+ \V[\new{X}]\inv\Cov[\new{X},\pne{Z}]
+ \;&\approx&\; \V[C^{\top}_{dynx}[\now{X};\uno{B};\now{U}]]\inv C^{\top}_{dynx} \V[[\now{X};\uno{B};\now{U}]] C_{dynz} \nnn
+ \;&=&\; (C^{\top}_{dynx} \Sigma C_{dynx})\inv C^{\top}_{dynx} \Sigma C_{dynz} \nnn
+ \;&=&\; (C^{\top}_{dynx} L^\top L C_{dynx})\inv C^{\top}_{dynx} L^\top L C_{dynz} \nnn
+ \;&=&\; (AA^\top)\inv A L C_{dynz} \nnn
+ \;&=&\; A (A^\top A)\inv L C_{dynz} \nnn
+ \;&=&\; C^{\top}_{dynx} L^\top (L C_{dynx} C^{\top}_{dynx} L^\top)\inv L C_{dynz} \nnn
+ \;&=&\; C^{\top}_{dynx} ( C_{dynx} C^{\top}_{dynx} )\inv C_{dynz} \nn
+\end{eqnarray}
+
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[->,>=stealth',scale=1, transform shape]
+\node [matrix,matrix anchor=mid, column sep=20pt, row sep=10pt, ampersand replacement=\&,nodes={circle,draw}] {
+                                           \& \node (x1) {$\new{X}$};  \\
+\node (xub10) {$\now{X},\uno{B},\now{U}$}; \&                          \\
+                                           \& \node (b11) {$\pne{Z}$}; \\
+};
+\draw [->] (xub10) to (x1) node [xshift = -0.65cm, yshift=-1.15cm] {$C_{dynx}$} ;
+\draw [->] (xub10) to (b11) node [xshift = -0.65cm, yshift=1.05cm] {$C_{dynz}$} ;
+\end{tikzpicture}
+\caption{Simplified directed graphical model of Fig.~\ref{fig:graph} with linear weights.}
+\label{fig:graph-szc-linear}
+\end{figure}
+
+% -----------------------------------------------------------------------------------------------------------------------
+
+% newpage
+\section{Joint Representation}
+
+\newcommand{\CbzGy}{C_{bz|y}}
+\newcommand{\vvec}[2]{\begin{bmatrix} #1 \\ #2 \end{bmatrix}} % vertical vector
+
+Here we compute the joint expression of all uncertain terms involved in ctrlBF.
+We can think of the belief distribution $B$ over state $X$, as a hierarchical representation:
+$B \sim \N(Z,V)$, where the mean parameter, $Z\sim\N(\m{z},\s{z})$, is itself uncertain.
+Equivalently, we might consider $B$ to be the sum of two (initially) independent random variables:
+$B = Z + Q$, where $Q\sim\N(0,V)$.
+
+Firstly, given:
+\begin{eqnarray}
+ p(\pno{z}) &\sim& \N(\m{\pno{z}},\s{\pno{z}}) \nnn
+ p(\pno{b}|\pno{z}) &\sim& \N(\pno{z},\pno{V}) \nnn
+ p(\pno{b}) &\sim& \N(\m{\pno{z}},\s{\pno{b}}) \nnn
+ \s{\pno{b}} &=& \s{\pno{z}}+\pno{V} \nnn
+ p(\now{y}|\pno{b}) &\sim& \N(\pno{b},\Sn) \nn
+\end{eqnarray}
+%
+then
+\begin{eqnarray}
+ p(\pno{b}|\now{y},\pno{z})
+   &\propto& p(\now{y}|\pno{b},\pno{z})p(\pno{b}|\pno{z}) \nnn
+   &=& p(\now{y}|\pno{b})p(\pno{b}|\pno{z}) \nnn
+   &\sim& \N \Big(w_z \pno{z} + w_y\now{y}, \;\; (\Sn\inv+\pno{V}\inv)\inv \Big) \nnn
+ w_z &=& \Sn(\Sn+\pno{V})\inv \nnn
+ w_y &=& \pno{V}(\Sn+\pno{V})\inv \nnn
+ p(\pno{b}|\now{y})
+   &\propto& p(\now{y}|\pno{b})p(\pno{b}) \nnn
+   &\sim& \N \Big( \s{b|y} (\Sn\inv \now{y} + \s{\pno{b}}\inv \m{\pno{z}}), \;\; \s{b|y} \Big) \nnn
+ \s{b|y}
+   &=& (\Sn\inv+\s{\pno{b}}\inv)\inv \nn
+\end{eqnarray}
+%
+Now consider the following joint belief expressions:
+\begin{eqnarray}
+ p\begin{pmatrix} \pno{b} \\ \pno{z} \end{pmatrix} &\sim&
+ \begin{pmatrix} \begin{bmatrix} \m{\pno{z}} \\ \m{\pno{z}} \end{bmatrix}, \begin{bmatrix} \s{\pno{b}} & \s{\pno{z}} \\ \s{\pno{z}} & \s{\pno{z}} \end{bmatrix} \end{pmatrix} \nnn
+ \rightarrow p(\uno{b},\uno{z}) \triangleq p(\{\pno{b},\pno{z}\}|\now{y})
+   &\propto& p(\now{y}|\pno{b},\pno{z})p(\pno{b},\pno{z}) \nnn
+   &=& p(\now{y}|\pno{b})p(\pno{b},\pno{z}) \nnn
+   &\sim& \N \Big(\Sigma \begin{bmatrix} \Sn & 0 \\ 0 & \infty \end{bmatrix}\inv \begin{bmatrix} \now{y} \\ 0 \end{bmatrix} + \Sigma \begin{bmatrix} \s{\pno{b}} & \s{\pno{z}} \\ \s{\pno{z}} & \s{\pno{z}} \end{bmatrix}\inv \begin{bmatrix} \m{\pno{z}} \\ \m{\pno{z}} \end{bmatrix}, \;\; \Sigma \Big) \nnn
+ \Sigma\inv
+   &=& \begin{bmatrix} \Sn\inv & 0 \\ 0 & 0 \end{bmatrix}
+      +\begin{bmatrix} \s{\pno{b}} & \s{\pno{z}} \\ \s{\pno{z}} & \s{\pno{z}} \end{bmatrix}\inv \nnn
+   &=& \begin{bmatrix} \Sn\inv+(\s{\pno{b}}-\s{\pno{z}})\inv &
+   -\s{\pno{b}}\inv \s{\pno{z}} (\s{\pno{z}}-\s{\pno{z}} \s{\pno{b}}\inv \s{\pno{z}})\inv \\
+   -(\s{\pno{b}}-\s{\pno{z}})\inv &
+   (\s{\pno{z}}-\s{\pno{z}} \s{\pno{b}}\inv \s{\pno{z}})\inv \end{bmatrix} \nnn
+ \Sigma
+   &=& \begin{bmatrix} \s{\pno{b}} (\s{\pno{b}} + \Sn)\inv \Sn &
+   \Sn (\s{\pno{b}} + \Sn)\inv \s{\pno{z}} \\
+   \s{\pno{z}} (\s{\pno{b}} + \Sn)\inv \Sn &
+   \s{\pno{z}}-\s{\pno{z}} (\s{\pno{b}}+\Sn)\inv \s{\pno{z}} \end{bmatrix} \nnn
+   &=& \begin{bmatrix} \s{b|y} & \CbzGy \\ \CbzGy^\top & \s{z|y} \end{bmatrix} \nnn
+ \CbzGy
+   &=& \Sn (\s{\pno{b}} + \Sn)\inv \s{\pno{z}} = \s{b|y} \s{\pno{b}}\inv \s{\pno{z}} \nnn
+ \s{z|y}
+   &=& \s{\pno{z}}-\s{\pno{z}} (\s{\pno{b}}+\Sn)\inv \s{\pno{z}}
+   = (\pno{V} + \Sn)(\s{\pno{b}} + \Sn)\inv \s{\pno{z}}
+   = (\s{\pno{z}}\inv+(\pno{V}+\Sn)\inv)\inv \nnn
+ \therefore p(\pno{b},\pno{z}|\now{y})
+   &\sim& \N \Big(\begin{bmatrix} \s{b|y} & \CbzGy \\ \CbzGy^\top & \s{z|y} \end{bmatrix} \begin{bmatrix} \Sn\inv\now{y} \\ 0 \end{bmatrix} + \begin{bmatrix} \Sn (\s{\pno{b}} + \Sn)\inv & 0 \\ -\s{\pno{z}}(\s{\pno{b}} + \Sn)\inv & I \end{bmatrix} \begin{bmatrix} \m{\pno{z}} \\ \m{\pno{z}} \end{bmatrix}, \;\; \Sigma \Big) \nnn
+   &\sim& \N \Big(\begin{bmatrix} \m{\uno{b}} \\ \m{\uno{z}} \end{bmatrix}, \;\; \Sigma \Big) \\
+ \m{\uno{b}}
+   &=& \s{b|y} (\Sn\inv \now{y} + \s{\pno{b}}\inv \m{\pno{z}}) \nnn
+ \m{\uno{z}}
+   &=& \m{\pno{z}}  + \CbzGy^\top \Sn\inv (\now{y}-\m{\pno{z}}) \nnn
+ p(\pno{b}|\pno{z},\now{y})
+   &\sim& \N \Big( \m{\uno{b}} + \CbzGy \s{z|y}\inv (\pno{z} - \m{\uno{z}}),
+   \; \s{b|y} - \CbzGy\s{z|y}\inv\CbzGy^\top \Big) \nnn
+   &\sim& \N \Big( \underbrace{w_z \pno{z} + w_y \now{y}}_{\uno{Z}},
+   \; \underbrace{(\Sn\inv+\pno{V}\inv)\inv}_{\uno{V}} \Big) \nn
+\end{eqnarray}
+%
+The policy input is currently the mean-belief $\uno{Z}$, a function of $\pno{Z}$ and $\now{Y}$.
+If $\pno{Z}$ or $\now{Y}$ are random, then $\uno{Z}$ is random too,
+\begin{eqnarray}
+ \uno{Z}
+  &=& w_z \pno{Z} + w_y \now{Y} \nnn
+ \E_{zy}[\uno{Z}]
+   &=& w_z \m{\pno{z}} + w_y \m{\now{x}} \nnn
+ \V_{zy}[\uno{Z}]
+   &=& [w_z, w_y] \begin{bmatrix} \s{\pno{z}} & C_{zx} \\ C_{zx}^\top & \s{\now{x}}+\Sn \end{bmatrix} [w_z, w_y]^\top \nn
+\end{eqnarray}
+
+\medskip\noindent
+% \red{TODO - verify:}
+We assume the policy has linear function (or can be approximated as such):
+\begin{eqnarray}
+ \now{U} &=& \theta^\top \begin{bmatrix} \uno{Z} \\ \uot{Z} \end{bmatrix} \nn
+ %        &=& \theta^\top \uno{Z} \begin{bmatrix} I \\ C_{gtrig}[\uno{Z},\uot{Z}] \end{bmatrix} \nn
+\end{eqnarray}
+and have a policy call:
+\begin{eqnarray}
+ [\m{u},\s{u},C_{u}] &=& policy(\E_{zy}[\uno{Z}],\V_{zy}[\uno{Z}]) \;\;\; \grey{\text{(where $C_{u}$ is $C_{poli}$)}} \nnn
+\end{eqnarray}
+The using results from Appendix~\ref{app:cov-ctrl} we have:
+\begin{eqnarray}
+ \Cov\begin{bmatrix}\begin{bmatrix}\uno{Z}\\\uot{Z}\end{bmatrix},\now{U}\end{bmatrix} = \begin{bmatrix} \blue{\Cov[\uno{Z},\now{U}]} \\ \Cov[\uot{Z},\now{U}] \end{bmatrix} &=& \begin{bmatrix} S_{\uno{Z}} & \Cov[\uno{Z},\uot{Z}] \\ \Cov[\uot{Z},\uno{Z}] & S_{\uot{Z}} \end{bmatrix} \theta \nnn
+ \therefore \blue{\Cov[\uno{Z},\now{U}]} &=& [ S_{\uno{Z}} , \Cov[\uno{Z},\uot{Z}] ] \theta \nnn
+                          &=& S_{\uno{Z}} \underbrace{[ I , C_{gtrig}[\uno{Z},\uot{Z}] ]}_{g} \theta \nnn
+ %\Cov(\now{U},\pno{X}) &=& \theta^\top \Cov(\uno{Z},\now{X}) = \theta^\top (w_z C_{xz}^\top + w_y \s{\now{x}}) \nnn
+ %\Cov(\now{U},\pno{Y}) &=& \theta^\top \Cov(\uno{Z},\now{Y}) = \theta^\top (w_z C_{xz}^\top + w_y \s{\now{y}}) \nnn
+ %\Cov(\now{U},\pno{Z}) &=& \theta^\top \Cov(\uno{Z},\pno{Z}) = \theta^\top (w_z \s{\pno{z}} + w_y C_{xz}) \nn
+ \Cov(\pno{X},\now{U}) &=& \Cov(\now{X},\uno{Z})g\theta = [C_{xz} , \s{\now{x}}]w^\top g\theta \nnn
+ \Cov(\pno{Y},\now{U}) &=& \Cov(\now{Y},\uno{Z})g\theta = [C_{xz} , \s{\now{y}}]w^\top g\theta \nnn
+ \Cov(\pno{Z},\now{U}) &=& \Cov(\pno{Z},\uno{Z})g\theta = [\s{\pno{z}} , C_{xz}^\top]w^\top g\theta \nn
+\end{eqnarray}
+
+\noindent
+Since $\Cov(\uno{Z},\now{U}) = \Cov(\uno{Z},\uno{Z}) \theta = \s{\uno{z}} \theta$,
+and $C_{u} \triangleq \s{\uno{z}}\inv \Cov(\uno{Z},\now{U})$,
+then we have: $\theta = C_{u}.$ \\
+
+\medskip\noindent\framebox{\parbox{\textwidth}{
+In summary: \\
+\noindent
+We start with prior joint:
+\begin{eqnarray}
+ p \begin{pmatrix} \now{x} \\ \now{y} \\ \pno{b} \\ \pno{z} \end{pmatrix}
+ &\sim& \begin{pmatrix} \begin{bmatrix} \m{\now{x}} \\ \m{\now{x}} \\ \m{\pno{z}} \\ \m{\pno{z}} \end{bmatrix},
+ \begin{bmatrix}
+ \s{\now{x}} & \s{\now{x}}     & C_{xz}              & C_{xz}      \\
+ \s{\now{x}} & \s{\now{x}}+\Sn & C_{xz}              & C_{xz}      \\
+ C_{xz}^\top & C_{xz}^\top     & \s{\pno{z}}+\pno{V} & \s{\pno{z}} \\
+ C_{xz}^\top & C_{xz}^\top     & \s{\pno{z}}         & \s{\pno{z}} \\
+ \end{bmatrix} \end{pmatrix} \label{eq:priormatrix}
+\end{eqnarray}
+%
+We then condition on observation $\now{y}$, and then decide action $\now{u}$:
+%
+\begin{eqnarray}
+ p \begin{pmatrix} \now{x}|\now{y} \\ \pno{b}|\now{y} \\ \pno{z}|\now{y} \\ \now{u}|\now{y} \end{pmatrix}
+ &\sim& \begin{pmatrix} \begin{bmatrix} \Sn\s{\now{y}}\inv\m{\now{x}}+\s{\now{x}}\s{\now{y}}\inv\now{y} \\ \blue{\m{\uno{b}}} \\ \blue{\m{\uno{z}}} \\ \m{u} \end{bmatrix},
+ \begin{bmatrix}
+ (\s{\now{x}}\inv + \Sn\inv)\inv & \Sn\s{\now{y}}\inv C_{xz} & \Sn\s{\now{y}}\inv C_{xz} & [C_{xz},\s{\now{x}}]w^\top gC_{u}       \\
+ C_{xz}^\top\s{\now{y}}\inv\Sn   & \blue{\s{b|y}}            & \blue{\CbzGy}             & [\s{\pno{z}}, C_{xz}^\top]w^\top gC_{u} \\
+ C_{xz}^\top\s{\now{y}}\inv\Sn   & \blue{\CbzGy^\top}        & \blue{\s{z|y}}            & [\s{\pno{z}}, C_{xz}^\top]w^\top gC_{u} \\
+ C_{u}^\top g^\top w [C_{xz},\s{\now{x}}]^\top &  C_{u}^\top g^\top w [\s{\pno{z}}, C_{xz}^\top]^\top &  C_{u}^\top g^\top w [\s{\pno{z}}, C_{xz}^\top]^\top & \s{u} \end{bmatrix} \end{pmatrix} \nn
+\end{eqnarray}
+%
+\blue{Problem}: If we instead compute $p(\pno{b},\pno{z}|\now{y})$ by looking only at at Eq.~\ref{eq:priormatrix} and then conditioning, then we get a different answer:
+\begin{eqnarray}
+ p(\pno{b},\pno{z}|\now{y})
+   &\sim& \N \begin{pmatrix} \begin{bmatrix}
+   \m{\pno{z}} + C_{xz}^\top \s{\now{y}}\inv (\now{y} - \m{\now{x}}) \\
+   \m{\pno{z}} + C_{xz}^\top \s{\now{y}}\inv (\now{y} - \m{\now{x}}) \end{bmatrix}, \;\;
+   \begin{bmatrix}
+   \s{\pno{b}} - C_{xz}^\top\s{\now{y}}\inv C_{xz} &
+   \s{\pno{z}} - C_{xz}^\top \s{\now{y}}\inv C_{xz} \\
+   \s{\pno{z}} - C_{xz}^\top \s{\now{y}}\inv C_{xz}  &
+   \s{\pno{z}} - C_{xz}^\top \s{\now{y}}\inv C_{xz} \end{bmatrix} \end{pmatrix}
+\end{eqnarray}
+%
+where:
+\begin{eqnarray}
+ \s{\now{y}} &=& \s{\now{x}}+\Sn \nnn
+ \s{\pno{b}} &=& \s{\pno{z}}+\pno{V} \nnn
+ \s{b|y} &=& (\Sn\inv+\s{\pno{b}}\inv)\inv \nnn
+ \CbzGy &=& \s{b|y} \s{\pno{b}}\inv \s{\pno{z}} \nnn
+ \s{z|y} &=& \s{\pno{z}}-\s{\pno{z}} (\s{\pno{b}}+\Sn)\inv \s{\pno{z}} \nnn
+ w &=& [w_z,w_y] = [\Sn(\Sn+\pno{V})\inv, \; \pno{V}(\Sn+\pno{V})\inv] \nn
+\end{eqnarray}
+}}
+
+\medskip\noindent
+\red{TODO} - integrate over $\now{y}$..., before or after prediction step?
+
+\end{document}

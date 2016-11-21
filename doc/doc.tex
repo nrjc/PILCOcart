@@ -1,0 +1,216 @@
+\documentclass{article}
+
+\usepackage{geometry}
+\usepackage{dsfont}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{textcomp}
+
+\usepackage{listings}
+
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+	%backgroundcolor=\color{lbcolor},
+	tabsize=2,
+	rulecolor=,
+	language=matlab,
+        basicstyle=\scriptsize,
+        upquote=true,
+        aboveskip={1.5\baselineskip},
+        columns=fixed,
+        showstringspaces=false,
+        extendedchars=true,
+        breaklines=true,
+        prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+        %frame=single,
+        showtabs=false,
+        showspaces=false,
+        showstringspaces=false,
+        identifierstyle=\ttfamily,
+        keywordstyle=\color[rgb]{0,0,1},
+        commentstyle=\color[rgb]{0.133,0.545,0.133},
+        stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+
+%\newcommand{\tt}[1]{\texttt{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}  % vector
+\newcommand{\mat}[1]{\boldsymbol{#1}}    % matrix
+\newcommand{\inv}{^{-1}}
+\newcommand{\T}{^{\top}}
+\newcommand{\E}{\mathds{E}}
+\newcommand{\var}{\mathds{V}}
+\newcommand{\cov}{\mathrm{cov}}
+\newcommand{\R}{\mathds{R}}
+\newcommand{\polpar}{\theta}
+\newcommand{\path}{\texttt{<path>/}}
+
+
+
+\title{Code Documentation} 
+
+\author{Marc Peter Deisenroth, Andrew McHutchon, Joe Hall, Carl Edward
+  Rasmussen}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Flow}
+
+\begin{enumerate}
+\item \texttt{applyController}
+\begin{enumerate}
+\item determine start state
+\item generate rollout
+\begin{enumerate}
+\item compute control signal $\pi(\vec x_t)$
+\item simulate dynamics (or apply control to real robot)
+\item transition to state $\vec x_{t+1}$
+\end{enumerate}
+\end{enumerate}
+\item \texttt{trainDynModel}
+\item \texttt{learnPolicy}
+\begin{enumerate}
+\item call gradient-based non-convex optimizer; minimize
+  \texttt{value} with respect to policy parameters
+\begin{enumerate}
+\item \texttt{propagated:} compute successor state distribution
+  $p(\vec x_{t+1})$ and gradients $\partial p(\vec
+  x_{t+1})/\partial\vec\theta$ with respect to the policy parameters
+\begin{enumerate}
+\item trigonometric augmentation of the state distribution $p(\vec
+  x_t)$
+\item compute distribution of preliminary (unsquashed) policy
+  $p(\tilde\pi(\vec x_t))$
+\item compute distribution of squashed (limited-amplitude) policy
+  $p(\pi(\vec x_t))=p(\vec u_t)$
+\item determine successor state distribution $p(\vec x_{t+1})$ using
+  GP prediction (\texttt{gp*})
+\end{enumerate}
+\item \texttt{loss:} compute expected cost $\E_{\vec x}[c(\vec x)]$
+  and its partial derivatives $\partial/\partial p(\vec x)$
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+
+
+\section{Software Package Overview}
+
+This software package implements the \textsc{pilco} algorithm. The
+package contains the following directories
+
+\begin{itemize}
+\item \texttt{base:} Root directory. Contains basic files and all
+  other directories.
+\item \texttt{control:} Directory that implements several controllers.
+\item \texttt{doc:} Documention
+\item \texttt{gp:} Everything that has to do with Gaussian processes
+  (training, predictions, sparse GPs etc.)
+\item \texttt{loss:} Several loss functions
+\item \texttt{scenarios:} Different scenarios. Each scenario is
+  packaged in a separate directory with all scenario-specific files
+\item \texttt{util:} Utility files
+\end{itemize}
+
+\section{\texttt{Base} Directory}
+
+
+\section{\texttt{Control} Directory}
+The control directory is located at \path\texttt{control}. The
+controllers compute the (unconstrained) control signals
+$\tilde\pi(\vec x))$.
+
+All controllers expect the following inputs
+\begin{enumerate}
+\item \texttt{policy:} A struct with the following fields
+\begin{itemize}
+\item \texttt{fcn}
+\item \texttt{p:} policy parameters
+\end{itemize}
+\item \texttt{m:} $\E[\vec x]\in\R^D$ The mean of the state
+  distribution $p(\vec x)$
+\item \texttt{s:} $\var[\vec x]\in\R^{D\times D}$ The covariance
+  matrix of the state distribution $p(\vec x)$
+\end{enumerate}
+
+
+
+The controller functions compute
+\begin{enumerate}
+\item \texttt{M:} $\E[\tilde\pi(\vec x)]\in\R^F$ The mean of the
+  predicted (unconstrained) control signal
+\item \texttt{S:} $\var[\tilde\pi(\vec x)]\in\R^{F\times F}$ The
+  covariance matrix of the predicted (unconstrained) control signal
+\item \texttt{V:} $\var(\vec x)\inv\cov[\vec x,\tilde\pi(\vec x)]$ The
+  cross-covariance between the (input) state $\vec x$ and the control
+  signal $\tilde\pi(\vec x)$, pre-multiplied with $\var(\vec x)\inv$,
+  the inverse of the covariance matrix of $p(\vec x)$.
+\item Derivatives. The derivatives of all output arguments with
+  respect to all input arguments are computed:
+\begin{itemize}
+\item \tt{dMdm:} $\partial M/\partial m\in\R^{F\times D}$ The
+  derivative of the mean of the predicted control with respect to the
+  mean of the state distribution.
+\item \tt{dSdm:} $\partial S/\partial m\in\R^{F^2\times D}$ The
+  derivative of the covariance of the predicted control with respect to the
+  mean of the state distribution.
+\item \tt{dVdm:} $\partial V/\partial m\in\R^{DF\times D}$ The
+  derivative of the cross-covariance $V$ with respect to the
+  mean of the state distribution.
+\item \tt{dMds:} $\partial M/\partial s\in\R^{F\times D^2}$ The
+  derivative of the mean of the predicted control with respect to the
+  covariance of the state distribution.
+\item \tt{dSds:} $\partial S/\partial m\in\R^{F^2\times D^2}$ The
+  derivative of the covariance of the predicted control with respect to the
+  covariance of the state distribution.
+\item \tt{dVds:} $\partial V/\partial m\in\R^{DF\times D^2}$ The
+  derivative of the cross-covariance $V$ with respect to the
+  covariance of the state distribution.
+\item \tt{dMdp:} $\partial M/\partial\polpar\in\R^{F\times |\vec\polpar|}$ The
+  derivative of the mean of the predicted control with respect to the
+  policy parameters $\vec\polpar$.
+\item \tt{dSdp:} $\partial S/\partial\polpar\in\R^{F^2\times |\vec\polpar|}$ The
+  derivative of the covariance of the predicted control with respect to the
+  policy parameters $\vec\polpar$.
+\item \tt{dVdp:} $\partial V/\partial\polpar\in\R^{DF\times |\vec\polpar|}$ The
+  derivative of the cross-covariance $V$ with respect to the
+  policy parameters $\vec\polpar$.
+\end{itemize}
+\end{enumerate}
+
+\section{\texttt{GP} Directory}
+
+
+\section{\texttt{Loss} Directory}
+
+\section{\texttt{Scenarios} Directory}
+\lstinputlisting{../scenarios/cartPole/settings.m}
+
+\section{\texttt{Util} Directory}
+
+
+\section{value}
+\lstinputlisting{../base/value.m}
+
+
+\section{propagate}
+\lstinputlisting{../base/propagate.m}
+
+\section{GP Predictions at Uncertain Inputs: gp0}
+\lstinputlisting{../gp/gp0.m}
+
+
+\section{Linear Controller: conlin}
+\lstinputlisting{../control/conlin.m}
+
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

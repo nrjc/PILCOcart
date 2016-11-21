@@ -1,0 +1,157 @@
+\documentclass[a4paper, 11pt]{article}
+
+\title{RBF Network Controller}
+\date{\today}
+\author{Marc Deisenroth}
+
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+
+\usepackage{units}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{dsfont}
+\usepackage{amsmath, amssymb}
+
+\usepackage{geometry}
+
+
+
+
+
+
+
+\newcommand{\R}{\mathds{R}}
+\newcommand{\Z}{\mathds{Z}}
+\renewcommand{\vec}{\boldsymbol}
+\newcommand{\mat}{\boldsymbol}
+\newcommand{\E}{\mathds{E}}
+\newcommand{\var}{\mathrm{var}}
+\newcommand{\cov}{\mathrm{cov}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\cost}{c}
+\newcommand{\T}{^\top}
+\newcommand{\inv}{^{-1}}
+\newcommand{\prob}{{p}}
+\renewcommand{\d}{\mathrm d}
+\newcommand{\gauss}[2]{\mathcal N(#1,#2)}
+\newcommand{\gaussx}[3]{\mathcal{N}\big(#1\,|\,#2,#3\big)}
+\renewcommand{\d}{\operatorname{d}\!}
+
+
+
+
+
+
+
+
+
+\begin{document}
+\maketitle
+
+
+In the nonlinear case, we represent the preliminary policy $\tilde\pi$
+by a radial basis function network with Gaussian basis functions. The
+preliminary RBF policy is given by
+%
+\begin{equation}\label{eq:policy RBF}
+  \tilde\pi(\vec x_*) =\sum\limits_{s=1}^N w_s \phi(\vec\mu_s,\vec x_*) =
+  \vec w_\pi\T \vec\phi(\mat M_\pi,\vec x_*)\,,
+\end{equation}
+%
+where $\vec x_*$ is a test input, $\phi(\vec\mu_s,\vec x_*) =
+\exp(-(\vec \mu_s-\vec x_*)\T\mat\Lambda\inv(\vec\mu_s-\vec x_*)/2)$ is
+an unnormalized Gaussian basis function centered at $\vec \mu_s$,
+$\mat\Lambda$ is a matrix of squared length-scales,  and
+$\vec w_\pi$ is a weight vector.
+
+The set $\mat M_\pi=[\vec \mu_1,\dotsc,\vec \mu_N]$, $\vec
+\mu_s\in\R^D$, $s=1,\dotsc,N$, are the locations of the centers of the
+Gaussian basis functions, also called the \emph{support points}. The
+RBF network in Eq.~(\ref{eq:policy RBF}) allows for flexible modeling,
+which is useful if the structure of the underlying function (in our
+case a good policy) is unknown.
+
+
+% \paragraph{Remark: Interpretation as a deterministic GP}
+% % RBF network as deterministic GP
+%   The RBF network given in \eq~(\ref{eq:policy RBF}) is
+%   functionally equivalent to the mean function. Thus, the RBF network
+%   can be considered a ``deterministic GP'' with a fixed number of $N$
+%   basis functions. Here, ``deterministic'' means that there is no
+%   uncertainty about the underlying function, that is,
+%   $\var_{\tilde\pi}[\tilde\pi(\vec x)]=0$. Note, however, that the RBF
+%   network is a finite and degenerate model; the predicted variances
+%   far away from the centers of the basis functions decline to zero.
+
+\paragraph{Predictive Distribution.}
+For a Gaussian distributed state $\vec x_*\sim\gauss{\vec
+  m_*}{\mat\Sigma_*}$, the predictive mean of $\tilde\pi(\vec x_*)$ is
+given as
+%
+\begin{align}
+\E_{\vec x_*}[\tilde\pi(\vec x_*)] &= \vec w_\pi\T \E_{\vec
+  x_*}[\vec\phi(\mat M_\pi, \vec x_*)]\\
+&= \vec w_\pi\T\int \vec\phi(\mat M_\pi, \vec x_*)\prob(\vec
+x_*)\d\vec x_* =\vec w_\pi\T\vec q\,,
+\label{eq:pred mean prel pol}
+\end{align}
+where for $i=1,\dotsc,N$, and $a = 1,\dotsc, F$
+\begin{align}
+q_{a_i} &= |\mat\Sigma_*\mat\Lambda_a\inv + \mat
+I|^{-\tfrac{1}{2}}\exp(-\tfrac{1}{2}(\vec\mu_*
+-\vec\mu_i)\T(\mat\Sigma_* + \mat\Lambda_a)\inv(\vec\mu_*
+-\vec\mu_i))\,,
+\end{align}
+where $\vec\mu_i$, $i=1\dotsc,N$ are the centers of the axis-aligned
+Gaussian basis functions of the RBF network, and $\mat\Lambda_a$ is a
+diagonal matrix of squared length-scales.
+
+The predictive covariance matrix is computed according to
+%
+\begin{align*}
+\var_{\vec x_*}[\tilde\pi(\vec x_*)]&\!=\!\E_{\vec x_*}[\tilde\pi(\vec
+x_*)\tilde\pi(\vec x_*)\T]\! -\! \E_{\vec x_*}[\tilde\pi(\vec
+x_*)]\E_{\vec x_*}[\tilde\pi(\vec
+x_*)]\T,
+\end{align*}
+% 
+where $\E_{\vec x_*}[\tilde\pi(\vec x_*)]$ is given in
+Eq.~{eq:pred mean prel pol}). Hence, we focus on the term
+$\E_{\vec x_*}[\tilde\pi(\vec x_*)\tilde\pi(\vec x_*)\T]$, which is given by
+%
+\begin{align*}
+&\vec w_\pi\T\E_{\vec x_*}[\mat\phi(\mat M_\pi, \vec x_*)\mat\phi(\mat
+M_\pi, \vec x_*)\T]\vec w_\pi=\vec w_\pi\T\mat Q\vec w_\pi\,,
+\end{align*}
+% 
+where for $i,j = 1,\dotsc, N$, we compute
+%
+\begin{align*}
+Q_{ij} &= \int\phi(\vec\mu_i, \vec x_*)\phi(\vec\mu_j, \vec
+x_*)\prob(\vec x_*)\d\vec x_*\\
+&=\phi(\vec\mu_i,\vec\mu_*)\phi(\vec\mu_j,\vec\mu_*)|\mat R|^{-\tfrac{1}{2}}\exp(\vec
+z_{ij}\T\mat R\inv\mat\Sigma_*\vec z_{ij})\,,\\
+\mat R &= \mat\Sigma_*(\mat\Lambda_a\inv + \mat\Lambda_b\inv) + \mat
+I\,,\\
+\vec z_{ij} &= \mat\Lambda_a\inv(\vec\mu_*-\vec\mu_i) +
+\mat\Lambda_b\inv(\vec\mu_*-\vec\mu_j)\,.
+\end{align*}
+%
+Combining this result with Eq.~(\ref{eq:pred mean prel pol}),
+determines the predictive covariance matrix of the preliminary policy.
+
+
+
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

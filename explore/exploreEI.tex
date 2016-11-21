@@ -1,0 +1,69 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{noweb}
+\usepackage{bm}
+\usepackage{hyperref}
+
+\newcommand{\argmax}[1]{\underset{#1}{\operatorname{arg}\operatorname{max}}\;}
+\newcommand{\pdf}{\phi(\lambda)}
+\newcommand{\cdf}{\Phi(\lambda)}
+\newcommand{\sqb}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\C}{\mathcal{C}}
+
+%opening
+\title{Expected Improvement \\ Exploration Heuristic for PILCO}
+\author{Rowan McAllister}
+
+\begin{document}
+
+\maketitle
+
+Let the parameterisation of the previous rollout be $r$,
+and the cumulative-cost distribution given the previous rollout be:
+\begin{eqnarray}
+ \C^{r} \sim \mathcal{N}(\mu_r,\sigma^2_r)
+\end{eqnarray}
+%
+We would like to choose a new parameterisation, $\theta$, 
+in such a way that it optimises the \textit{expected improvement} (E.I.) of the cumulative-cost.
+Since we care about low costs, `improvement' means a decrease in cost.
+For arbitrary $\theta$ we have cumulative-cost distribution $\C^{\theta} \sim \mathcal{N}(\mu_\theta,\sigma^2_\theta)$. 
+What is the probability $P(\C^{\theta} < \C^{r})$? Let $\Delta\C \;\doteq\; \C^{\theta} - \C^{r}$. Note:
+\begin{eqnarray}
+ \Delta\C \;&\sim&\; \mathcal{N}(\mu_\theta - \mu_r, \sigma^2_\theta + \sigma^2_r - 2c)
+\end{eqnarray}
+%
+where $c$ is the covariance between $\C^{\theta}$ and $\C^{r}$. 
+Let's assume (approximate) that $c = 0$, to make life simpler.
+So now the expected improvement, by changing parameterisation from $r$ to $\theta$ is:
+\begin{eqnarray}
+ E.I. 
+ \;&=&\; \int_{-\infty}^0 x \, \mathcal{N} \big( x ; \mu_\theta-\mu_r, \sigma^2_\theta + \sigma^2_r \big) dx \\
+ \;&=&\; \Phi(-z)(\mu_\theta-\mu_r) - \phi(z)\sqrt{\sigma^2_\theta + \sigma^2_r}
+\end{eqnarray} 
+where $\phi(\cdot)$ is the standard normal distribution, $\Phi(\cdot)$ its cumulative standard normal function, and
+$z = \frac{\mu_\theta-\mu_r}{\sqrt{\sigma^2_\theta + \sigma^2_r}}$.
+In this case the E.I. is our loss function.
+\begin{eqnarray}
+ L \;&=&\; \Phi(-z)(\mu_\theta-\mu_r) - \phi(z)\sqrt{\sigma^2_\theta + \sigma^2_r}
+\end{eqnarray}
+%
+With gradients:
+\begin{eqnarray}
+ \frac{dL}{d\mu_\theta} 
+ \;&=&\; -\frac{\partial z}{\partial \mu_\theta} \phi(z)(\mu_\theta-\mu_r) + \Phi(-z) + \frac{\partial z}{\partial \mu_\theta} z\phi(z)\sqrt{\sigma^2_\theta + \sigma^2_r} \\
+ \;&=&\; \Phi(-z) \\
+ \frac{dL}{d\sigma^2_\theta}
+ \;&=&\;-\frac{\partial z}{\partial \sigma^2_\theta} \phi(z)(\mu_\theta-\mu_r) + \frac{\partial z}{\partial \sigma^2_\theta} z \phi(z)\sqrt{\sigma^2_\theta + \sigma^2_r}
+ - \frac{\phi(z)}{2\sqrt{\sigma^2_\theta + \sigma^2_r}} \nonumber \\
+ \;&=&\; -\frac{\phi(z)}{2\sqrt{\sigma^2_\theta + \sigma^2_r}}
+\end{eqnarray}
+
+
+\end{document}

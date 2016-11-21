@@ -1,0 +1,13 @@
+The following minor changes were made in "tprod_mex.c"
+
+1) changed the default block size from 32 to 64 which is probably
+   slightly more efficient on our machines:
+
+   const int DEFAULTBLKSZ=64;
+
+2) commented out the warning for calling with empty matrices:
+
+   /* WARNING("tprod: Empty matrix input!"); */
+
+Carl Edward Rasmussen, 2012-06-20
+

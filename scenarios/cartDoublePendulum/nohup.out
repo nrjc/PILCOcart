@@ -1,0 +1,7 @@
+[ 104473]   WARN - 2.RepoProgressIndicatorAdapter - Errors during XML parse: 
+[ 104473]   WARN - 2.RepoProgressIndicatorAdapter - cvc-elt.1.a: Cannot find the declaration of element 'sdk:sdk-repository'. 
+[ 104473]   WARN - 2.RepoProgressIndicatorAdapter - org.xml.sax.SAXParseException; lineNumber: 17; columnNumber: 140; cvc-elt.1.a: Cannot find the declaration of element 'sdk:sdk-repository'. 
+[ 104473]   WARN - 2.RepoProgressIndicatorAdapter - javax.xml.bind.UnmarshalException
+ - with linked exception:
+[org.xml.sax.SAXParseException; lineNumber: 17; columnNumber: 140; cvc-elt.1.a: Cannot find the declaration of element 'sdk:sdk-repository'.] 
+[ 107054]   WARN - 2.RepoProgressIndicatorAdapter - File /home/nicholas/.android/repositories.cfg could not be loaded. 

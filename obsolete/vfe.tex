@@ -1,0 +1,138 @@
+\documentclass{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[top=1.0in]{geometry}
+\usepackage{color}
+
+\setlength{\textwidth}{160mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\parindent}{0 mm}
+
+\newcommand{\bff}{{\bf f}}
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfx}{{\bf x}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+\newcommand{\C}{{\mathbb C}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\invt}{{^{-\top}}}
+\newcommand{\T}{^{\top}}
+\newcommand{\nsqt}{^{-\tfrac{\top}{2}}}
+\newcommand{\nsq}{^{-\tfrac{1}{2}}}
+\newcommand{\sqt}{^{\tfrac{\top}{2}}}
+\newcommand{\sq}{^{\tfrac{1}{2}}}
+\newcommand{\R}{{\mathcal R}}
+\newcommand{\mat}[3]{#1 \in \R^{#2 \times #3}}
+\newcommand{\p}[1]{\frac{\partial}{\partial #1}}
+\newcommand{\llik}{{\mathcal{L}}}
+\definecolor{grey}{rgb}{0.4,0.4,0.4}
+\newcommand{\grey}[1]{\textcolor{grey}{#1}}
+
+\title{Gaussian Process object which handles Angles}
+\author{Rowan McAllister}
+
+\begin{document}
+
+\maketitle
+
+\subsection*{Titsias method: ``Variational Learning of Inducing Variables in Sparse Gaussian Processes''}
+
+% chol: R'R = A; R chol(A)
+
+Using Eq.9 from Titsias paper, plus extra terms $V$, $C$ and $U$:
+\begin{equation}
+\begin{split}
+nlml\;\triangleq&\;-\log[\N(y;0,\sigma^2I_n+Q_{nn})]+\tfrac{1}{2\sigma^2}Tr(K_{nn}-Q_{nn})\\
+ =&\;\tfrac{1}{2} \big( n\log[2\pi] +\log[\det[\sigma^2I_n+Q_{nn}]] + y\T (\sigma^2I_n+Q_{nn})\inv y + \sigma^{-2}Tr(K_{nn}-Q_{nn}) \big) \\
+Q_{nn}\;\triangleq&\;K_{nm}K_{mm}\inv K_{mn} \\
+ =&\;V\T V\\
+V\;=&\; L^{-\top}K_{mn} = chol(K_{mm})\T \backslash K_{mn}\\
+K_{mm}\;=&\;L\T L\\
+%V\;\triangleq&\;K_{mm}\nsqt K_{mn} = L^{-\top}K_{mn} = chol(K_{mm})\T \backslash K_{mn}\\
+C\;\triangleq&\; chol(\sigma^2 I_m + VV\T) \\
+U\;\triangleq&\; (\sigma^2 I_m +VV\T)\nsqt = C\T \backslash V
+\end{split}
+\end{equation}
+Using matrix inversion lemma:
+\begin{equation}
+\begin{split}
+(\sigma^2I_n+Q_{nn})\inv\;
+ =&\; (\sigma^2I_n+K_{nm}K_{mm}\inv K_{mn})\inv \\
+ =&\; \sigma^{-2}I_n-\sigma^{-2}K_{nm}(K_{mm}+\sigma^{-2}K_{mn} K_{nm})\inv K_{mn}\sigma^{-2} \\
+ =&\; \sigma^{-2} \big( I_n - K_{nm}(\underbrace{\sigma^2 L\T L+K_{mn} K_{nm}}_{A})\inv K_{mn} \big)\\
+ =&\; \sigma^{-2} \big( I_n - K_{nm}L\inv(\sigma^2I_m +L\invt K_{mn} K_{nm}L\inv)\inv L\invt K_{mn} \big)\\
+ =&\; \sigma^{-2} \big( I_n - V\T(\sigma^2I_m +VV\T)\inv V \big)\\
+ =&\; \sigma^{-2} \big( I_n - U\T U \big)
+\end{split}
+\end{equation}
+For the determinant we make use of identity:
+\begin{equation}
+\begin{split}
+ \det(aI_n \pm C A\inv B) \;=&\; a^{n-m}\det(aA \pm BC)/\det(A) \;\;\; \text{where } \mat{A}{m}{m}, \mat{B}{m}{n}, \mat{C}{n}{m}, a\in\R 
+\end{split}
+\end{equation}
+and thus have:
+\begin{equation}
+\begin{split}
+\det[\sigma^2I+Q_{nn}]\;
+ =&\;\det[\sigma^2 I+K_{nm}K_{mm}\inv K_{mn}]\\
+ =&\;\sigma^{2(n-m)} \det[\sigma^2 K_{mm}+K_{mn}K_{nm}]/\det[K_{mm}]\\
+ =&\;\sigma^{2(n-m)} \det[\sigma^2I_m +VV\T]\\
+ =&\;\sigma^{2(n-m)} (\prod diag(C))^2\\
+\log[\det[\sigma^2I+Q_{nn}]]\;
+ =&\;(n-m)\log[\sigma^2] + 2\sum \log[diag(C)]\\
+\end{split}
+\end{equation}
+%
+For the trace:
+\begin{equation}
+\begin{split}
+Tr(K_{nn}-Q_{nn})\;
+ =&\;Tr(K_{nn}) - Tr(V\T V)\\
+ =&\;n \sigma^2_{\text{signal}} - \sum_{ij}(V\odot V)_{ij}
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives}
+
+We use derivatives tricks from Ed Snelson's PhD thesis 
+``Flexible and efficient Gaussian process models for machine learning'', appendix C:
+
+\begin{equation}
+\begin{split}
+ Q_{nn}\;\triangleq&\;K_{nm}K_{mm}\inv K_{mn} \\
+ q_{nn}\;\triangleq&\;\sigma^2I_n+Q_{nn} \\
+ A \;=&\; \sigma^2 K_{mm} +K_{mn} K_{nm} \\
+ \dot{A} \;=&\; \sigma^2\dot{K}_{mm} + \dot{K}_{mn}K_{nm} + K_{mn}\dot{K}_{nm} \\
+ B \;=&\; K_{mn}\T A\inv \\
+ %\psi \;\triangleq&\; \text{unknown terms, not necessarily the same!} \\
+ \p{x_{mf}} nlml 
+  =&\;\tfrac{1}{2} \big(\p{x_{mf}} \underbrace{\log[\det[q_{nn}]]}_{\llik_1} + \p{x_{mf}} \underbrace{y\T q_{nn}\inv y}_{\llik_2} + \sigma^{-2} \p{x_{mf}} \underbrace{Tr(-Q_{nn})}_{\llik_3} \big) \\
+ % =&\;\tfrac{1}{2} \big( \psi q_{nn}\inv \psi + \psi q_{nn}\inv yy^\top q_{nn}\inv \psi - \sigma^{-2} Tr(\p{x_{mf}} Q_{nn}) \big) \\
+\end{split} 
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\llik_1 \;=&\; \log[\det[q_{nn}]] \\
+        \;=&\; \log[\det[A]] - \log[\det[K_{mm}]] + (N-M)\log \sigma^2 \\
+\dot{\llik_1} \;=&\; Tr(A\nsqt \dot{A} A\nsq) - Tr(K_{mm}\nsqt \dot{K}_{mm} K_{mm}\nsq) \grey{\;\;\;\; \text{(see Eq C.8 Ed's thesis)}} \\
+        \; &\; \\
+\llik_2 \;=&\; y\T q_{nn}\inv y \\
+\dot{\llik_2} \;=&\; \tfrac{1}{\sigma^{2}} y\T [ K_{mn}\T A\nsq (A\nsqt \dot{A} A\nsq (A\nsqt K_{mn} ) - 2A\nsqt \dot{K}_{mn})] y \grey{\;\;\;\; \text{(see Eq C.9 Ed's thesis)}} \\
+              \;=&\; \tfrac{1}{\sigma^{2}} y\T [ B ( \dot{A} B\T - 2 \dot{K}_{mn})] y \\
+ \; &\; \\
+\llik_3 \;=&\; Tr(-Q_{nn}) \\
+        \;=&\; -Tr(K_{nm}K_{mm}\inv K_{mn}) \\
+\dot{\llik_3} \;=&\; -Tr(\dot{Q}_{nn}) \\
+              \;=&\; -Tr(-K_{nm} K_{mm}\inv \dot{K}_{mm} K_{mm}\inv K_{mn} + \dot{K}_{nm} K_{mm}\inv K_{mn} + K_{nm} K_{mm}\inv \dot{K}_{mn});
+\end{split} 
+\end{equation}
+
+\end{document}

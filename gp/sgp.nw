@@ -1,0 +1,272 @@
+\documentclass[11pt]{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{noweb}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{fit}
+\usepackage{pgfplots}
+\usetikzlibrary{positioning}
+\usepackage{placeins} % for figures to not move outside their sections
+
+\providecommand{\tabularnewline}{\\}
+
+% BEGIN syntax highlighting using the listing package
+\usepackage{color}
+\definecolor{darkgreen}{rgb}{0,.5,.1}
+\definecolor{darkred}{rgb}{.5,.1,.1}
+\definecolor{darkblue}{rgb}{0,.1,.4}
+\usepackage{listings}
+\usepackage{graphicx}
+\lstset{language=Matlab} % determine language
+\lstset{deletekeywords={mean,cov}}
+\lstset{morekeywords={repmat,varargout,true,ischar,str2func,isfield,func2str,numel,isa}}
+% basic font settings
+\lstset{basicstyle=\small\ttfamily}
+% line numbers
+\lstset{numbers=left,numberstyle=\color{cyan},stepnumber=1,numbersep=5pt}
+% comments
+\lstset{commentstyle=\color{darkgreen}}
+% strings
+\lstset{stringstyle=\color{darkred},showstringspaces=false}
+% keywords
+\lstset{keywordstyle=\color{darkblue}}
+\lstset{emph={break,case,catch,continue,else,elseif,end,for,function,global,if,otherwise,persistent,return,switch,try,while},emphstyle=\color{blue}}
+\lstset{basewidth={0.55em,0.45em}}
+\lstset{xleftmargin=1.1em}
+\lstset{aboveskip=0em}
+\lstset{belowskip=-2em}
+\lstset{showlines=false}
+%% \begin{lstlisting}
+%%    Matlab code
+%% \end{lstlisting}
+% END syntax highlighting using the listing package
+
+\setlength{\textwidth}{166mm}
+\setlength{\textheight}{245mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\topmargin}{-25mm} 
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{1mm}
+
+\def\nwendcode{\endtrivlist \endgroup \vfil\penalty400\vfilneg}
+\let\nwdocspar=\smallbreak
+
+\title{Sparse Gaussian Processes: \texttt{sgp}}
+\author{Carl Edward Rasmussen}
+\date{April 1st, 2016}
+
+\begin{document}
+
+\maketitle
+
+This document describes an implementation of two methods for sparse
+approximate inference in Gaussian Processes (GPs), the Fully
+Independent Training Conditionals (FITC) \cite{SneGha06} and a
+Variational Free Energy approximation (VFE) \cite{Tit09}.
+
+The implementation assumes that the covariance function is squared
+exponential, and that the mean function is linear (for brevity, the
+mean function is not included in the documentation).
+
+\section{Log Marginal Likelihood}
+
+In the sparse approximation, the approximate log marginal likelihood is given by
+%
+\begin{equation}
+\log(q({\bf y}|u))\;=\;-\tfrac{1}{2}{\bf y}^\top(Q+G)^{-1}{\bf y}-\tfrac{1}{2}\log|Q+G|
+-\tfrac{1}{2\sigma_n^2}\operatorname{tr}(T)-\tfrac{n}{2}\log(2\pi),
+\end{equation}
+where
+\begin{alignat}{3}
+Q_{f,f}\;&=\;K_{f,u}K^{-1}_{u,u}K_{u,f},\\
+G_{\rm FITC}\;&=\;\operatorname{diag}[K_{f,f}-Q_{f,f}]+\sigma_n^2I,&&\quad\text{and}\quad&
+G_{\rm VFE}\;&=\;\sigma_n^2I, \\
+T_{\rm FITC}\;&=\;0,&&\quad\text{and}\quad&
+T_{\rm VFE}\;&=\;K_{f,f}-Q_{f,f}.
+\end{alignat}
+%
+Note that all elements of $G$ are bounded below by $\sigma_n^2$, because $K$ is positive definite.
+Rewriting $Q_{f,f}=V^\top V$, where $V=L^{-1}K_{u,f}$ and $K_{u,u}=LL^\top$, and using the matrix
+inversion lemma, the approximate log marginal likelihood can be written as
+%
+\begin{alignat}{1}
+\log(q({\bf y}|u))\;=&\;-\tfrac{1}{2}{\bf y}^\top(G^{-1}
+-G^{-1}V^\top A^{-1}VG^{-1}){\bf y}-\tfrac{1}{2}\log|A|
+-\tfrac{1}{2}\log|G|-\tfrac{1}{2\sigma_n^2}\operatorname{tr}(T)-\tfrac{n}{2}\log(2\pi)\nonumber\\
+=&\;-\tfrac{1}{2}{\bf y}^\top{\bf z}-\tfrac{1}{2}\log|A|
+-\tfrac{1}{2}\log|G|-\tfrac{1}{2\sigma_n^2}\operatorname{tr}(T)-\tfrac{n}{2}\log(2\pi)
+\end{alignat}
+%
+where $A=I+VG^{-1}V^\top$ and
+${\bf z}=(Q+G)^{-1}{\bf y}=(G^{-1}-G^{-1}V^\top A^{-1}VG^{-1}){\bf y}$.
+
+<<nlml>>=
+l = exp(hyp(e).l); s2 = exp(2*hyp(e).s); n2 = exp(2*hyp(e).n);
+u = bsxfun(@rdivide, induce, l');                     % scaled inducing inputs
+x = bsxfun(@rdivide, inputs, l');                     % scaled training inputs
+Kuu = s2*(exp(-maha(u,u)/2) + ridge*eye(M));
+Kuf = s2*exp(-maha(u,x)/2);
+L = chol(Kuu)';
+V = L\Kuf;
+r = s2 - sum(V.*V,1)';                % diagonal residual Kff - Kfu Kuu^-1 Kuf
+G = fitc*r + n2; iG = 1./G;
+A = eye(M) + V*bsxfun(@times,iG,V');
+J = chol(A)';
+B = J\V;
+z = iG.*y - (y'.*iG'*B'*B.*iG')';
+nlml = nlml + y'*z/2 + sum(log(diag(J))) + sum(log(G))/2 ...
+                                            + vfe*sum(r)/n2/2 + N*log(2*pi)/2;
+@
+
+\section{Derivatives}
+
+The derivative of the approximate log marginal likelihood wrt parameters $\theta$
+%
+\begin{equation}
+\frac{\partial\log(q(y|u))}{\partial\theta}\;=\;
+\frac{\partial\log q}{\partial Q}\frac{\partial Q}{\partial\theta}
++\frac{\partial\log q}{\partial G}\frac{\partial G}{\partial\theta}
++\frac{\partial\log q}{\partial T}\frac{\partial T}{\partial\theta},
+\text{\ \ where\ \ }q\;\overset{\triangle}{=}\;q(y|u),
+\end{equation}
+%
+where $\theta$ could be either the inducing inputs $u$ or parameters
+of the covariance function (hyperparameters). We have
+%
+\begin{equation}
+2\frac{\partial\log q}{\partial Q}\;=\;
+{\bf z}{\bf z}^\top-G^{-1}+G^{-1}V^\top A^{-1}VG^{-1},\text{\ \ and\ \ }
+\frac{\partial\log q}{\partial G}\;=\;
+\operatorname{diag}\big[\frac{\partial\log q}{\partial Q}\big].
+\end{equation}
+%
+Note that we cannot compute $\frac{\partial\log q}{\partial Q}$
+itself, as the cost would be prohibitive ($N^2M$).
+
+\subsection{Inducing inputs}
+
+We need the derivatives of $Q$, $G_{\rm FITC}$ and $T_{\rm VFE}$
+(ignoring the trivial $G_{\rm VFE}$ and $T_{\rm FITC}$)
+%
+\begin{alignat}{1}
+\frac{\partial Q}{\partial u}\;&=\;2K_{f,u}K_{u,u}^{-1}\frac{\partial K_{u,f}}{\partial u}-
+K_{f,u}K^{-1}\frac{\partial K_{u,u}}{\partial u}K^{-1}K_{u,f}
+\;=\;2\operatorname{sym}(R^\top P),\label{eq:dQ}\\
+\frac{\partial G_{\rm FITC}}{\partial u}\;&=\;-2\operatorname{diag}(R^\top P),\label{eq:dG}\\
+\frac{\partial T_{\rm VFE}}{\partial u}\;&=\;-2\operatorname{tr}(R^\top P),\label{eq:dT}
+\end{alignat}
+%
+where $\operatorname{sym}(A) = \tfrac{1}{2}(A+A^\top)$ and we have defined
+%
+\begin{equation}
+R\;=\;K_{u,u}^{-1}K_{u,f}\text{\ \ and\ \ }
+P\;=\;\frac{\partial K_{u,f}}{\partial u}-\frac{\partial \tilde K_{u,u}}{\partial u}R,
+\end{equation}
+%
+and the derivative of $\tilde K_{u,u}$ denotes the derivative taken
+with respect to only the first argument of $K$ (as the derivative wrt
+the second argument is just the transpose of the derivative wrt the
+first argument). Of course, in an actual implementation, the product
+$R^\top P$ in eq.~(\ref{eq:dQ}) should never explicitly be
+computed (as this would cost $N^2M$ operations).
+
+<<deriv>>=
+R = L'\V;
+RiG = bsxfun(@times,R,iG');
+RdQ = -R*z*z' + RiG - bsxfun(@times,RiG*B'*B,iG');
+dG = z.^2 - iG + iG.^2.*sum(B.*B,1)';
+RdQ2 = RdQ + bsxfun(@times, R, fitc*dG' - vfe/n2);
+KW = Kuf.*RdQ2;
+KWR = Kuu.*(RdQ2*R');
+P = KW*x + bsxfun(@times, sum(KWR, 2) - sum(KW, 2), u) - KWR*u;
+dnlml.induce = dnlml.induce + bsxfun(@rdivide, P, l');
+dnlml.hyp(e).l = -sum(P.*u,1) ...
+                        - sum((KW'*u - bsxfun(@times, sum(KW',2), x)).*x,1);
+dnlml.hyp(e).n = -sum(dG)*n2 - vfe*sum(r)/n2;
+dnlml.hyp(e).s = sum(sum(Kuf.*RdQ)) - fitc*r'*dG + vfe*sum(r)/n2;
+dnlml.hyp(e).b = -sum(z);
+dnlml.hyp(e).m = -inputs'*z;
+@
+
+\subsection{Hyperparameters}
+
+For the log lengthscale hyperparameter
+%
+\begin{equation}
+\frac{\partial Q}{\partial\log\ell}\;=\;
+\end{equation}
+
+<<sgp.m>>=
+function [nlml, dnlml] = sgp(p, inputs, target, style, test)
+
+ridge = 1e-06;               % relative jitter to make matrix better conditioned
+switch style, case 'fitc', fitc = 1; vfe = 0; case 'vfe', vfe = 1; fitc = 0; end
+induce = p.induce; hyp = p.hyp;                             % shorthand notation
+[N, D] = size(inputs); M = size(induce,1); nlml = 0; dnlml.induce = zeros(M, D);
+
+for e = 1:length(hyp)
+  y = target(:,e) - inputs*hyp(e).m - hyp(e).b;
+  <<nlml>>
+  if nargin == 5                                              % make predictions
+    <<predict>>
+  elseif nargout == 2                                      % compute derivatives
+    <<deriv>>
+  end
+end
+@
+
+\section{Predictions for deterministic test inputs}
+
+For efficiency, predictions are made based on pre-computation of the
+quantities which don't depend on the test cases. These quanteties are
+$\beta$ and $W$. The Gaussian predictions
+%
+\begin{equation}
+\mu\;=\;k(x^*,x)\beta,\quad\text{and}\quad
+\sigma^2\;=\;k(x^*,x^*) - k(x^*,x)Wk(x,x^*).
+\end{equation}
+%
+The definition of $\beta$ and $W$ depend on the inference method being
+used. For the full GP we have
+%
+\begin{equation}
+\beta\;=\;(K+\sigma_n^2I)^{-1}{\bf y},\quad\text{and}\quad
+W\;=\;(K+\sigma_n^2I)^{-1}.
+\end{equation}
+%
+For the sparse FITC and VFE method we have
+\begin{equation}
+\beta\;=\;(K_{u,u}+K_{u,f}G^{-1} K_{f,u})^{-1}K_{u,f}G^{-1}{\bf
+  y},\quad\text{and}\quad
+W\;=\;K^{-1}_{u,u}-(K_{u,u}+K_{u,f}G^{-1} K_{f,u})^{-1}.
+\end{equation}
+
+<<predict>>=
+beta = (y'.*iG'*B'/J/L)';
+W = L'\(eye(M)-eye(M)/J'/J)/L;
+Ktu = s2*exp(-maha(bsxfun(@rdivide,test,l'), u)/2);
+nlml = Ktu*beta + test*hyp.m + hyp.b;
+dnlml = s2+n2-sum(Ktu*W.*Ktu,2);
+@
+
+
+\bibliographystyle{plain}
+\begin{thebibliography}{}
+\bibitem[1]{SneGha06}
+Edward Snelson and Zoubin Ghahramani. Sparse Gaussian processes using pseudo-inputs. In Y. Weiss, B. Schölkopf, and J. Platt, editors, Advances in Neural Information Processing Systems 18, pages 1257-1264. The MIT Press, Cambridge, MA, 2006.
+\bibitem[2]{Tit09}
+Michalis K. Titsias. Variational Learning of Inducing Variables in Sparse Gaussian Processes.
+Twelfth International Conference on Artificial Intelligence and Statistics, (AISTATS), JMLR: W\&CP 5, pp. 567-574, 2009.
+\end{thebibliography}
+
+
+\end{document}

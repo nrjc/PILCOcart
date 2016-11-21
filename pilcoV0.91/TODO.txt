@@ -1,0 +1,31 @@
+Last edited: 2014-03-12
+
+[] update minimize (plotting)
+[] update minimize (extrapolation with noisy function evaluations)
+[] prune code directories as much as possible
+[] test NN controller
+[X] test RBF controller vs CONGP controller --> use CONGP
+[X] throw either RBF or GP controller out (see above)
+[] fix settings files
+[] proper data structure for data{j}.inputs/data{j}.targets
+	[] use new data-structure for extracting GP training data
+	[] take time offsets into account
+[] automate number of line-searches/fct evaluations in settings files
+
+
+--------------- Documentation
+[] code documentation: base
+[] code documentation: control
+[] code documentation: gp
+[] code documentation: loss
+[] code documentation: scenarios
+[] code documentation: test
+[] code documentation: util
+[] documentation: important interfaces
+[] documentation: gp
+[] documentation: overview
+[] documentation: step-by-step scenario
+[] documentation: scenarios
+[] documentation: testing & debugging
+[] generate_docs -> make sure it contains all files from the directories
+[] index for variables in documentation

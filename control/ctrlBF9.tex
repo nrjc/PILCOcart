@@ -1,0 +1,181 @@
+\documentclass{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setlength{\textwidth}{160mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\parindent}{0 mm}
+
+\newcommand{\bff}{{\bf f}}
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfx}{{\bf x}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+\newcommand{\C}{{\mathbb C}}
+\newcommand{\inv}{{^{-1}}}
+\newcommand{\invt}{{^{-\top}}}
+
+\title{Control using Bayesian Filtering}
+\author{Carl Edward Rasmussen}
+\date{September 25th, 2014}
+
+\begin{document}
+
+\maketitle
+
+The \emph{state} of the control system contains two parts:
+\begin{enumerate}
+\item the \emph{physical state} $x$,
+\item the \emph{information state} distribution $z\sim{\cal N}(b,V)$.
+\end{enumerate}
+
+Thus, the \emph{state distribution} is in principle a distribution over the random
+variables, $x$, $b$ and $V$. However, as an approximation we are going
+to assume that the distribution on the variance $V$ is just a delta
+function (ie, that the variance is some fixed value). Assuming further
+that the state distribution is Gaussian
+\begin{equation}
+\left[\!\begin{array}{c}x\\b\!\end{array}\right]\;\sim\;{\cal
+  N}\left(\left[\!\begin{array}{c}m_x\\ m_b\end{array}\;\right],
+\left[\!\begin{array}{cc}\Sigma_x&\Sigma_{xb}\\
+\Sigma_{bx}&\Sigma_b\end{array}\!\right]\right).
+\end{equation}
+
+\subsection*{Controller instantiation}
+
+When an actual controller is applied, it gets three pieces of
+information: $b$, $V$ and a noisy observation of the state, $y = x +
+\epsilon$, where $\epsilon\sim{\cal N}(0,\Sigma_\epsilon)$. It updates
+its (prior) belief ${\cal N}(b, V)$ with the observation likelihood to
+obtain the posterior belief
+\begin{equation}
+z|b,y\;\sim\;{\cal N}\big(m_{z|b,y}=Ay+Bb,(V^{-1}+\Sigma_\epsilon^{-1})^{-1}\big),
+\end{equation}
+where $A=V(V+\Sigma_\epsilon)^{-1}$ and
+$B=\Sigma_\epsilon(V+\Sigma_\epsilon)^{-1}$.
+
+The controller then applies the policy $f$ to the mean of the
+posterior belief to compute the action $u$
+\begin{equation}
+u\;=\;f(r),\text{\ \ where\ \ } r\;=\;Ay+Bb.
+\end{equation}
+Thus, the joint distribution over posterior state and action, given
+$b$ and $y$
+\begin{equation}
+z,u|b,y\;\sim\;{\cal N}\left(\mu(b,y)=\left[\!\begin{array}{c}r\\ u\end{array}\!\right],\;
+\Sigma(b,y)=\left[\!\begin{array}{cc}(V^{-1}+\Sigma_\epsilon^{-1})^{-1}&0\\0&0\end{array}
+\!\right]\right),
+\end{equation}
+where we note that the variance $\Sigma(b,y)$ doesn't in fact depend
+on either $b$ or $y$. Finally, the controller can predict the next state by applying the  
+dynamics model $g$ to the posterior $z,u|b,y$ to obtain a predicted  
+distribution with mean and variance, given by eq.~(5) and (7) and the
+\texttt{gph.pdf} document
+\begin{equation}
+\begin{split}
+\tilde b^{t+1}&\;=\;s_a^2\beta_a^\top q\big(x_i,\mu(b,y),\Lambda_a,\Sigma(b,y)\big) 
++\theta_a^\top\mu(b,y),\\
+\tilde V^{t+1}&\;=\;h\big(\mu(b,y),\Sigma(b,y)\big),
+\end{split}
+\end{equation}
+where $h$ is some longish function, which I didn't bother to write
+down right now. This completes the specification of the instantiated
+controller.
+
+\subsection*{Simulation}
+
+In \emph{simulation} we need to compute the behaviour of the
+controller and system over the \emph{state distribution}. We have
+\begin{equation}
+\left[\!\begin{array}{c}x\\ r\end{array}\!\right]\;\sim\;{\cal
+  N}\left(\left[\!\begin{array}{c}m_x\\  Am_x+Bm_b\end{array}\!\right],
+\left[\!\begin{array}{cc}\Sigma_x&\Sigma_xA^\top+\Sigma_{xb}B^\top\\
+A\Sigma_x+B\Sigma_{bx}&\Sigma_r\end{array}
+\!\right]\right),
+\end{equation}
+where $\Sigma_r=
+A(\Sigma_x+\Sigma_\epsilon)A^\top+A\Sigma_{xb}B^\top+B\Sigma_{bx}A^\top+B\Sigma_bB^\top$.
+
+The controller function computes
+\begin{equation}
+(M, S,C)\;=\;f(Am_x+Bm_b,\Sigma_r),
+\end{equation}
+where $M$ is the predictive mean, $S$ the predictive variance and $C$
+is the inverse of the covariance of the input time the input output
+covariance. Thus we have
+\begin{equation}
+\left[\!\!\begin{array}{c}x\\ r\\ u\end{array}\!\!\right]\;\sim\;{\cal
+  N}\!\left(\!\mu=\left[\!\!\begin{array}{c}m_x\\  Am_x\!+\!Bm_b\\
+      M\end{array}\!\!\right]\!,\;
+\Sigma=\left[\!\!\begin{array}{ccc}\Sigma_x&\Sigma_xA^\top\!+\!\Sigma_{xb}B^\top&(\Sigma_xA^\top\!+\!\Sigma_{xb}B^\top)C\\
+A\Sigma_x\!+\!B\Sigma_{bx}&\Sigma_r&\Sigma_rC\\
+C^\top(A\Sigma_x\!+\!B\Sigma_{bx})\!&C^\top\Sigma_r&S\end{array}\!\!\right]\!\right)\!.
+\label{eq:post}
+\end{equation}
+  
+The simlulator needs to compute three sets of quanteties for the next
+time step: 1) the physical state distribution, 2) the information state
+distribution and 3) the covariance between the two.
+
+For the physical state distribution, we apply the dynamics model $g$
+to the joint state action distribution
+\begin{equation}
+g\big(\left[\!\begin{array}{c}x\\ u\end{array}\!\right]\big),\text{\ \ where\ \ }
+\left[\!\begin{array}{c}x\\ u\end{array}\!\right]\;\sim\;{\cal
+  N}\left(\left[\!\begin{array}{c}m_x\\ M\end{array}\!\right],
+\left[\!\begin{array}{cc}\Sigma_x&(\Sigma_xA^\top+\Sigma_{xb}B^\top)C\\
+C^\top(A\Sigma_x+B\Sigma_{bx})&S\end{array}\!\right]\right),
+\end{equation}
+which using the standard result for predictive mean and variance for
+the GP with Gaussian inputs yields $m_x^{t+1}$ and $\Sigma_x^{t+1}$.
+
+For the information state we have compute
+\begin{equation}
+m_b^{t+1}\;=\;\E[\tilde b^{t+1}],\quad
+ \Sigma_b^{t+1}\;=\;\V[\tilde b^{t+1}],\quad
+V^{t+1}\;=\;\E[\tilde V^{t+1}],
+\end{equation}
+where all expectations and variances are taken over $p(r,u)$. These
+expressions are given by eq.~(11), (13) and (14) from the
+\texttt{gph.pdf} document. In detail
+\begin{equation}
+m_b^{t+1}\;=\;s_a^2\beta_a^\top q\Big(\!x_i,
+\left[\!\!\begin{array}{c}Am_x\!+\!Bm_b\\M\end{array}\!\!\right],\Lambda_a,
+\left[\!\!\begin{array}{cc}\Sigma_r+(V^{-1}+\Sigma_\epsilon^{-1})^{-1}&\Sigma_rC\\
+C^\top\Sigma_r&S\end{array}\!\!\right]\!\Big) 
++\theta_a^\top\left[\!\!\begin{array}{c}Am_x\!+\!Bm_b\\M\end{array}\!\!\right].
+\end{equation}
+
+Finally, we need the covariance between the physical state and the
+information state mean which is 
+\begin{equation}
+\Sigma_{xb}^{t+1}\;=\;\E[\tilde b^{t+1}g(x)]-\E[\tilde b^{t+1}]\E[g(x)],
+\end{equation}
+where the expectation is over the joint $p(x,r,u)$ and can be
+calculated with the standard derivation and an extended input
+representation. The calculation will involve an average like this (SKETCH)
+\begin{equation}
+\begin{split}
+\E[\tilde b^{t+1}g(x)]\;&=\;s_a^2s_b^2\beta_a^\top\langle q(\cdot,(x,r,u)^\top,\Big(\!\begin{array}{cc}\infty&\\
+  &\Lambda_a\end{array}\!\Big),W)
+\times
+q((x,r,u)^\top,\cdot,\Big(\!\begin{array}{ccc}\Lambda_b&&\\ &\infty&\\
+&&\Lambda_b\end{array}\!\Big),W)\rangle\beta_b+\\
+&=\;s_a^2s_b^2\beta_a^\top
+Q(\cdot,\cdot,\Lambda_a,\Lambda_b,W,\mu,\Sigma)\beta_b+\theta_a\Sigma\theta_b^\top,
+\end{split}
+\end{equation}
+where the $\langle\ldots\rangle$ average is wrt the distibution
+eq.~(\ref{eq:post}), the missing argument in the $q()$ function are
+the training inputs and
+\begin{equation}
+W\;=\;\Big(\!\begin{array}{ccc}0&0&0\\0&(V^{-1}+\Sigma_\epsilon^{-1})^{-1}&0\\0&0&0\end{array}\!\Big)
+\end{equation}
+the result of this integral is given in eq.~(2), middle line of the
+\texttt{gph.pdf} document.
+\end{document}

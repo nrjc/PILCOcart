@@ -1,0 +1,92 @@
+\documentclass{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setlength{\textwidth}{160mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\parindent}{0 mm}
+
+\newcommand{\bfa}{{\bf a}}
+\newcommand{\bfb}{{\bf b}}
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfs}{{\bf s}}
+\newcommand{\bfz}{{\bf z}}
+\newcommand{\bfx}{{\bf x}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+
+\title{Augment Gaussian with Trigonometric Functions}
+\author{Carl Edward Rasmussen}
+\date{October 20th 2008}
+
+\begin{document}
+
+\maketitle
+
+In several contexts it is useful to be able to augment a joint
+Gaussian distribution with the trigonometric functions sine and cosine
+of one or more of its coordinates. The resulting distribution is not
+Gaussian, but we can compute exactly the first and second (central)
+moments of the augmented distribution. Additionally, the derivative of
+these moments wrt.~the parameters of the joint distribution are also
+computed.
+
+Let $x$ be a $D$ dimensional Gaussian
+\[
+\bfx\;\sim\;{\cal N}(\bfa,\,A),
+\]
+which we want to augment by sine and cosine of $x_i, \forall i\in I$,
+where $d$ is the number of elements in $I$, resulting in the
+$D\!+\!2d$ dimensional joint Gaussian
+\[
+\left[\!\!\begin{array}{c}\bfx\\ \bfz\end{array}\!\!\right]\;\sim\;
+{\cal N}\left(\!\left[\!\!\begin{array}{c}\bfa\\
+      \bfb\end{array}\!\!\right],\,
+\left[\!\!\begin{array}{cc}A&B\\B^\top&C\end{array}\!\!\right]\!\right).
+\]
+Below we derive expressions for the elements $\bfb, B$ and $C$.
+
+For the means, we have for $i=1,\ldots,d$
+\[
+\begin{split}
+b_{2i-1}\;&=\;\E[\sin(x_{I(i)})]\;=\;\exp(-A_{I(i),I(i)}/2)\sin(a_{I(i)}),\\
+b_{2i}\;&=\;\E[\cos(x_{I(i)})]\;=\;\exp(-A_{I(i)I(i)}/2)\cos(a_{I(i)}).
+\end{split}
+\]
+For the covariances we have for $i=1,\ldots,d,j=1,\ldots,D$
+\[
+\begin{split}
+B_{j,2i-1}\;&=\;\exp(-\tfrac{1}{2}A_{I(i),I(i)})\cos(a_{I(i)})A_{j,I(i)},\\
+B_{j,2i}\;&=\;-\exp(-\tfrac{1}{2}A_{I(i),I(i)})\sin(a_{I(i)})A_{j,I(i)},
+\end{split}
+\]
+and for $i,j=1,\ldots,d$, $i\neq j$
+\[
+\begin{split}
+C_{2i-1,2i-1}\;&=\;q_i(1+\exp(-A_{I(i),I(i)})\cos(2a_{I(i)}))\\
+C_{2i,2i}\;&=\;q_i(1-\exp(-A_{I(i),I(i)})\cos(2a_{I(i)}))\\
+C_{2i,2i-1}\;=\;C_{2i-1,2i}\;&=\;-q_i\exp(-A_{I(i),I(i)})\sin(2a_{I(i)})\\
+C_{2i-1,2j-1}\;&=\;q_{ij}([\exp(A_{I(i),I(j)})\!-\!1]\cos(a_{I(i)}\!-\!a_{I(j)})-
+[\exp(-A_{I(i),I(j)})\!-\!1]\cos(a_{I(i)}\!+\!a_{I(j)}))\\
+C_{2i,2j}\;&=\;q_{ij}([\exp(A_{I(i),I(j)})\!-\!1]\cos(a_{I(i)}\!-\!a_{I(j)})+
+[\exp(-A_{I(i),I(j)})\!-\!1]\cos(a_{I(i)}\!+\!a_{I(j)}))\\
+C_{2i,2j-1}\;&=\;q_{ij}(-[\exp(A_{I(i),I(j)})\!-\!1]\sin(a_{I(i)}
+\!-\!a_{I(j)})+[\exp(-A_{I(i),I(j)})\!-\!1]\sin(a_{I(i)}\!+\!a_{I(j)}))\\
+C_{2i-1,2j}\;&=\;q_{ij}([\exp(A_{I(i),I(j)})\!-\!1]\sin(a_{I(i)}
+\!-\!a_{I(j)})+[\exp(-A_{I(i),I(j)})\!-\!1]\sin(a_{I(i)}\!+\!a_{I(j)})),
+\end{split}
+\]
+where $q_i=(1-\exp(-A_{I(i),I(i)}))/2$, and $q_{ij}=\exp(-\tfrac{1}{2}(A_{I(i),I(i)}+A_{I(j),I(j)}))/2$.
+
+% 2sin(A)sin(B) = cos(A-B)-cos(A+B)
+% 2cos(A)cos(B) = cos(A-B)+cos(A+B)
+% 2sin(A)cos(B) = sin(A-B)+cos(A+B)
+
+
+
+\end{document}

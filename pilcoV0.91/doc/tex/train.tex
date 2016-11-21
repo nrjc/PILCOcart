@@ -1,0 +1,85 @@
+
+% This LaTeX was auto-generated from an M-file by MATLAB.
+% To make changes, update the M-file and republish this document.
+
+
+
+    
+    
+\begin{lstlisting}
+function [gp, nlml] = train(gp, iter)
+
+% train a GP model with SE covariance function (ARD). First the hypers are
+% trained using full GPs. Then, if gp.induce exists, indicating sparse
+% approximation, if enough training exmples are present, train the inducing
+% inputs. If no inducing inputs are present, then initialize these to be a
+% random subset of the training cases.
+%
+% gp               struct gaussian process dynamics model
+%   hyp      1xE   struct of hyperparameters (ignored on the input)
+%     m      Dx1   mean function coefficients
+%     b      1x1   mean function bias
+%     l      Dx1   ARD log lenghtscale parameters
+%     s      1x1   log of signal std dev
+%     n      1x1   log of noise std dev
+%   inputs   nxD   training inputs
+%   targets  nxE   training targets
+%   induce  Mxdxe  [optional] inducing inputs
+%   mean     1x1   [optional] switch for training mean (1) or keeping it
+%                   fixed at its set value (0). Defaults to 1.
+% iter       1x2   [optional] number of training iterations
+% nlml       1xE   negative log marginal likelihood for each GP (incl curb)
+%
+%
+% Last modification: 2014-02-03
+
+if nargin < 2, iter = [-500 -1000]; end       % default training iterations
+if isfield(gp,'trainMean'); mS = gp.trainMean; else mS = 0; end
+[N, D] = size(gp.inputs); E = size(gp.targets,2);       % get variable sizes
+nlml = zeros(1,E);
+
+curb.snr = 300; curb.ls = 100; curb.std = std(gp.inputs);    % set hyp curb
+[gp.hyp(1:E).l] = deal(log(std(gp.inputs)')); t = log(std(gp.targets)); % initialize hyp
+s = num2cell(t); [gp.hyp.s] = deal(s{:});
+s = num2cell(t-log(10)); [gp.hyp.n] = deal(s{:});
+if mS; [gp.hyp(1:E).m] = deal(zeros(D,1)); [gp.hyp.b] = deal(0); end
+
+if isfield(gp.hyp,'on'); gp.hyp = rmfield(gp.hyp,'on'); end
+
+for i = 1:E                                      % train each GP separately
+  [gp.hyp(i), v] = minimize(gp.hyp(i), @hypCurb, iter(1), gp.inputs, ...
+    gp.targets(:,i), mS, curb);
+  nlml(i) = v(end);
+end
+
+if isfield(gp,'induce')              % are we using a sparse approximation?
+  [M, d, e] = size(gp.induce);
+  if M < N;              % only call FITC if we have enough training points
+
+    if d == 0                            % we don't have inducing inputs yet?
+      gp.induce = zeros(M,D,e);                              % allocate space
+      for i = 1:e
+        j = randperm(N); gp.induce(:,:,i) = gp.inputs(j(1:M),:); % random subset
+      end
+    end
+
+    [gp.induce, nlml2] = minimize(gp.induce, 'fitc', iter(end), gp);
+    fprintf('GP NLML, full: %e, sparse: %e, diff: %e\n', ...
+      sum(nlml), nlml2(end), nlml2(end)-sum(nlml));
+  else
+    fprintf('GP NLML: %e\n', sum(nlml));
+  end
+end
+
+% We must now split the single learnt noise level into observation and
+% process noise terms. The AR GP trained here assumes all the noise is
+% observation noise. We keep a small amount of process noise for numerical
+% stability.
+gp.noise = exp(2*[gp.hyp.n]);                   % the total amount of noise
+for i=1:E;
+  gp.hyp(i).n = gp.hyp(i).s - log(curb.snr);              % process noise
+  gp.hyp(i).on = log(max(gp.noise(i) - exp(2*gp.hyp(i).n),1e-9))/2; % observation noise
+end
+
+gp = gpPreComp(gp);        % make the precomputations needed for prediction
+\end{lstlisting}

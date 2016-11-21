@@ -1,0 +1,241 @@
+\documentclass{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setlength{\textwidth}{160mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\parindent}{0 mm}
+
+\newcommand{\bff}{{\bf f}}
+\newcommand{\bfm}{{\bf m}}
+\newcommand{\bfx}{{\bf x}}
+\newcommand{\E}{{\mathbb E}}
+\newcommand{\V}{{\mathbb V}}
+\newcommand{\C}{{\mathbb C}}
+\newcommand{\inv}{{^{-1}}}
+\newcommand{\invt}{{^{-\top}}}
+
+\title{GP Prediction with Hierarchical Uncertain Inputs}
+\author{Carl Edward Rasmussen and Rowan McAllister}
+\date{December 23nd, 2014}
+
+\begin{document}
+
+\maketitle
+
+The two functions
+\begin{equation}
+\begin{split}
+q(x,x',\Lambda,V)\;\triangleq&\;|\Lambda^{-1}V+I|^{-1/2}\exp\big(-\tfrac{1}{2}(x-x')[\Lambda+V]^{-1}(x-x')\big),\\
+Q(x,x',\Lambda_a,\Lambda_b,V, \mu, \Sigma)\;\triangleq&\;
+c_1\exp\big(-\tfrac{1}{2}(x-x')^\top[\Lambda_a+\Lambda_b+2V]^{-1}(x-x')\big)\\
+&\times\,\exp\big(-\tfrac{1}{2}(z-\mu)^\top\big[\big((\Lambda_a+V)^{-1}+(\Lambda_b+V)^{-1}\big)^{-1}+\Sigma\big]^{-1}(z-\mu)\big),\\
+=&\;c_2\,q(x,\mu,\Lambda_a,V)\,q(\mu,x'\Lambda_b,V)\\
+&\times\,\exp\big(\tfrac{1}{2}{\bf
+  r}^\top\big[(\Lambda_a+V)^{-1}+(\Lambda_b+V)^{-1}+\Sigma^{-1}\big]^{-1}{\bf r}\big),\\
+\text{where}&\left\{\begin{array}{l}
+z\;=\;(\Lambda_b+V)(\Lambda_a+\Lambda_b+2V)^{-1}x+(\Lambda_a+V)(\Lambda_a+\Lambda_b+2V)^{-1}x'\\
+{\bf r}\;=\;(\Lambda_a+V)^{-1}(x-\mu)+(\Lambda_b+V)^{-1}(x'-\mu)\\
+c_1\;=\;\big|(\Lambda_a+V)(\Lambda_b+V)+(\Lambda_a+\Lambda_b+2V)\Sigma\big|^{-1/2}\big|\Lambda_a\Lambda_b\big|^{1/2}\;\\
+c_2\;=\;\big|\big((\Lambda_a+V)^{-1}+(\Lambda_b+V)^{-1}\big)\Sigma+I\big|^{-1/2},\end{array}\right.
+\end{split}
+\end{equation}
+have the following Gaussian integrals
+\begin{equation}
+\begin{split}
+\int q(x,t,\Lambda,V){\cal N}(t|\mu,\Sigma)dt\;=&\;q(x,\mu,\Lambda,\Sigma+V),\\
+\int q(x,t,\Lambda_a,V)\,q(t,x',\Lambda_b,V)\,{\cal
+  N}(t|\mu,\Sigma)dt\;=&\;Q(x,x',\Lambda_a,\Lambda_b,V,\mu,\Sigma),\\
+\int Q(x,x',\Lambda_a,\Lambda_b,0,\mu,V){\cal N}(\mu|\bfm,\Sigma)d\mu\;=&\;Q(x,x',\Lambda_a,\Lambda_b,0,\bfm,\Sigma+V).
+\end{split}
+\end{equation}
+%
+We want to model data with $E$ output coordinates, and use seperate
+combinations of linear models and GPs to make predictions,
+$a=1,\ldots,E$:
+\[
+f_a(x^*)\;=\;f_a^*\;\sim\;{\cal N}\big(\theta_a^\top x^*+k_a(x^*,\bfx)\beta_a,\;
+k_a(x^*,x^*)-k_a(x^*,\bfx)(K_a+\Sigma_\varepsilon^a)^{-1}k_a(\bfx,x^*)\big),
+\]
+where the $E$ squared exponential covariance functions are
+\begin{equation}
+k_a(x,x')\;=\;s_a^2q(x, x',\Lambda_a,0), \text{\ \ where\ \ }a=1,\ldots,E,
+\end{equation}
+and $s_a^2$ are the signal variances and $\Lambda_a$ is a diagonal
+matrix of squared length scales for GP number $a$. The noise variances
+are $\Sigma_\varepsilon^a$. The inputs are $\bfx$ and the outputs
+$y_a$ and we define $\beta_a=(K_a+\Sigma_\varepsilon^a)^{-1}(y_a-\theta_a^\top\bfx)$.
+
+\subsection*{Predictions at uncertain inputs}
+
+Consider making predictions from $a=1,\ldots,E$ GPs at $\bfx^*$ with specification
+\begin{equation}
+p(\bfx^*|\bfm,\Sigma)\;\sim\;{\cal N}(\bfm, \Sigma).
+\end{equation}
+%
+We have the following expressions for the predictive mean, variances
+and input output covariances
+\begin{align}
+\E[\bff^*|\bfm,\Sigma]\;&=\;\int\big(s_a^2\beta_a^\top
+q(x_i,\bfx^*,\Lambda_a,0)+\theta_a^\top\bfx^*\big){\cal N}(\bfx^*|\bfm,\Sigma)d\bfx^*\;=\;s_a^2\beta_a^\top q^a+\theta_a^\top \bfm,\label{eq:m}\\
+\C[x^*,f_a^*|\bfm,\Sigma]\;&=\;\int (x^*-\bfm)\big(s^2_a\beta_a^\top
+q(\bfx,x^*,\Lambda_a,0)+\theta_a^\top x^*\big){\cal
+  N}(x^*|\bfm,\Sigma)dx^*\nonumber\\
+&=\;s^2_a\Sigma(\Lambda_a+\Sigma)^{-1}(\bfx-\bfm)\beta_aq^a+\Sigma\theta_a\;=\;
+\Sigma C_a+\Sigma\theta_a,\label{eq:c}\\
+\V[f_a^*|\bfm,\Sigma]\;&=\;\V[\E[f_a^*|x^*]|\bfm,\Sigma]+\E[\V[f_a^*|x^*]|\bfm,\Sigma]\nonumber\\
+&=\;\V[s_a^2\beta_a^\top q(\bfx,x^*,\Lambda_a,0)+\theta_a^\top x^*]+\delta_{ab}\E[s_a^2-k_a(x^*,\bfx)(K_a+\Sigma_\varepsilon^a)^{-1}k_a(\bfx,x^*)]\label{eq:v}\\
+&=\;s_a^2s_b^2\big[\beta_a^\top (Q^{ab}-q^aq^{b\top})\beta_b
++\delta_{ab}\big(s_a^{-2}-\operatorname{tr}((K_a+\Sigma_\varepsilon^a)^{-1}Q^{aa})\big)\big]
++C_a^\top\Sigma\theta_b+\theta_a^\top\Sigma C_b+\theta_a^\top\Sigma\theta_b,\nonumber\\
+\text{\ \ where\ \ }\;q^a_i\;&=\;q(x_i,\bfm,\Lambda_a,\Sigma), \text{\ \ and\ \ }
+Q^{ab}_{ij}\;=\;Q\big(x_i,x_j,\Lambda_a,\Lambda_b,0,\bfm,\Sigma\big).\nonumber
+\end{align}
+
+\subsection*{Predictions at hierarchical uncertain inputs}
+
+Consider making predictions from $a=1,\ldots,E$ GPs at $\bfx^*$ with \emph{hierarchical} specification
+\begin{equation}
+p(\bfx^*|\mu)\;\sim\;{\cal N}(\mu, V),\text{\ \ and\ \ } \mu\;\sim\;{\cal N}(\bfm,\Sigma),
+\end{equation}
+%
+or equivalently the joint
+%
+\begin{equation}
+p\big(\Big[\!\begin{array}{c}\bfx^*\\
+  \mu\end{array}\!\Big]\big)\;\sim\;{\cal
+  N}\big(\Big[\!\begin{array}{c}\bfm\\
+  \bfm\end{array}\!\Big],\Big[\!\begin{array}{cc}\Sigma+V&\Sigma\\ \Sigma&\Sigma\end{array}\!\Big]\big).
+\end{equation}
+
+We're interested in the following quantities
+\begin{equation}
+\E[\E[f(x^*|\mu,V)]],\quad\C[\mu,\E[f(x^*|\mu,V)]],\quad\V[\E[f(x^*|\mu,V)]],\quad\E[\C[x^*,f(x^*|\mu,V)]]
+\text{\ \  and\ \ }\E[\V[f(x^*|\mu,V)]].
+\end{equation}
+%
+For the \emph{mean of the mean} we have
+\begin{equation}
+\begin{split}
+\E[\E[f(x^*|\mu,V)]]\;&=\;\int \E[f(x^*|\mu,V)] {\cal N}(\mu|\bfm,\Sigma)d\mu\\
+&=\;s_a^2\beta_a^\top\int q({\bf x},\mu,\Lambda_a,V){\cal N}(\mu|\bfm,\Sigma)d\mu+\theta_a^\top \bfm
+\;=\;s_a^2\beta_a^\top q(\bfx,\bfm,\Lambda_a,\Sigma+V)+\theta_a^\top \bfm.
+\end{split}
+\label{eq:mm}
+\end{equation}
+
+For the \emph{covariance of the mean} we have  
+\begin{equation}
+\begin{split}
+\C[\mu,\E[f(x^*|\mu,V)]]\;&=\;\int (\mu-\bfm)\E[f(x^*|\mu,V)]{\cal N}(\mu|\bfm,\Sigma)d\mu\\
+&=\;\int (\mu-\bfm)\big(s^2_a\beta_a^\top
+q(x_i,\mu,\Lambda_a,V)+\theta_a^\top \mu\big){\cal N}(\mu|\bfm,\Sigma)d\mu\\
+&=\;s^2_a\Sigma(\Lambda_a+\Sigma+V)^{-1}(\bfx-\bfm)\beta_aq(\bfx,\bfm,\Lambda_a,\Sigma+V)
++\Sigma\theta_a\;=\;\Sigma\hat C_a+\Sigma\theta_a.  
+\end{split}
+\label{eq:cm}
+\end{equation}
+ 
+For the \emph{variance of the mean} we have
+\begin{equation}
+\begin{split}
+\V[\E[f(x^*|\mu,V)]]\;&=\;\int \E[f(x^*|\mu,V)]^2{\cal
+  N}(\mu|\bfm,\Sigma)d\mu-\E[\E[f(x^*|\mu,V)]]^2\\
+&=\;s_a^2s_b^2\beta_a^\top(\hat Q^{ab}-q^a
+q^{b\top})\beta_b+\hat C_a^\top\Sigma\theta_b+\theta_a^\top\Sigma\hat C_b+\theta_a^\top\Sigma\theta_b,\\
+\text{where\ \ }\;q^a_i\;&=\;q(x_i,\bfm,\Lambda_a,\Sigma+V), \text{\ \ and\  \ }
+\hat Q_{ij}^{ab}\;=\;Q(x_i,x_j,\Lambda_a,\Lambda_b,V,\bfm,\Sigma).
+\label{eq:vm}
+\end{split}
+\end{equation}
+
+For the \emph{mean of the covariance} we have  
+\begin{equation}
+\begin{split}
+\E[\C[x^*,f(x^*|\mu,V)]]\;&=\;\int\C[x^*,f(x^*|\mu,V)]{\cal N}(\mu|\bfm,\Sigma)d\mu,\\
+&=\; s^2_aV(\Lambda_a+V)^{-1} \int (\bfx-\mu)\beta_a^\top q(\bfx,\mu,\Lambda_a,V){\cal N}(\mu|\bfm,\Sigma)d\mu+V\theta_a,\\
+&=\; s^2_aV(\Lambda_a+\Sigma+V)^{-1}(\bfx-\bfm)\beta_a^\top q(\bfx,\bfm,\Lambda_a,\Sigma+V) +V\theta_a\;=\;
+V\hat C_a+V\theta_a.
+\end{split}
+\label{eq:mc}
+\end{equation}
+
+Finally, for the \emph{mean of the variance} we have 
+\begin{align}
+\E[\V[f(x^*|\mu,V)]\;&=\;\int\V[f(x^*|\mu,V)]{\cal N}(\mu|\bfm,\Sigma)d\mu\label{eq:mv}\\
+&=\;s_a^2s_b^2\big[\beta_a^\top (\tilde Q^{ab}-\hat Q^{ab})\beta_b+
+\delta_{ab}\big(s_a^{-2}-\operatorname{tr}((K_a+\Sigma_\varepsilon^a)^{-1}\tilde
+Q^{aa})\big)\big]+\hat C_a^\top V\theta_b+\theta_a^\top V\hat C_b+\theta_a^\top V\theta_b,\nonumber\\
+\text{where\ \ }
+\tilde Q_{ij}^{ab}\;&=\;Q(x_i,x_j,\Lambda_a,\Lambda_b,0,\bfm,\Sigma+V),
+\text{\ \  and\ \ }
+\hat Q_{ij}^{ab}\;=\;Q(x_i,x_j,\Lambda_a,\Lambda_b,V,\bfm,\Sigma).\nonumber
+\end{align}
+
+Note, that for the special case $V=0$, eq.~(\ref{eq:m}) is equal to
+eq.~(\ref{eq:mm}), eq.~(\ref{eq:v}) is equal to the sum of
+eq.~(\ref{eq:vm}) and eq.~(\ref{eq:mv}) and eq.~(\ref{eq:c}) is equal to eq.~(\ref{eq:cm}).
+
+\subsection*{Derivatives}
+
+% q function partial derivatives
+For symmetric $\Lambda$ and $V$ and $\Sigma$:
+\begin{equation}
+\begin{split}
+\frac{\partial \ln q(x,x',\Lambda,V)}{\partial x} 
+\;=&\; -(\Lambda+V)\inv (x-x') = -(\Lambda\inv V+I)\inv\Lambda\inv (x-x') \\
+\frac{\partial \ln q(x,x',\Lambda,V)}{\partial x'} 
+\;=&\; (\Lambda+V)\inv (x-x') \\
+\frac{\partial \ln q(x,x',\Lambda,V)}{\partial V}
+\;=&\; -\frac{1}{2}(\Lambda+V)\inv + \frac{1}{2}(\Lambda+V)\inv(x-x')(x-x')^\top(\Lambda+V)\inv
+\end{split}
+\end{equation}
+
+% Q function partial derivatives
+Let 
+$L=(\Lambda_a+V)\inv+(\Lambda_b+V)\inv$, 
+$R=\Sigma L+I$,
+$Y=R\inv \Sigma=\big[L+\Sigma\inv\big]\inv$,
+$T: X \rightarrow XX^\top$:
+\begin{equation}
+\begin{split}
+&\partial Q(x,x',\Lambda_a,\Lambda_b,V, \mu, \Sigma)
+\;=\; Q \circ \partial \Big( \ln c_2 + \ln q(x,\mu,\Lambda_a,V) + 
+\ln q(\mu,x'\Lambda_b,V) + 
+\frac{1}{2} y^\top Y y \Big) \\
+% \mu:
+&\frac{1}{2}\frac{\partial \, y^\top Y y}{\partial \mu} = 
+y^\top  Y \frac{\partial y}{\partial \mu} = -y^\top YL \\
+% \Sigma:
+& \frac{\partial \ln c_2}{\partial \Sigma} = -\frac{1}{2}\frac{\partial \ln |L\Sigma +I|}{\partial\Sigma} = 
+-\frac{1}{2}L^\top(L \Sigma+I)\invt = -\frac{1}{2}LR\inv \\
+&\frac{\partial \, y^\top Y y}{\partial \Sigma} = 
+\Sigma\invt Y^\top yy^\top  Y^\top\Sigma\invt =
+T(R\invt y) \\
+% V:
+& \frac{\partial \ln c_2}{\partial V} = -\frac{1}{2}\frac{\partial \ln |L\Sigma +I|}{\partial V} = 
+-\frac{1}{2}\frac{\partial \ln |\sum_i \big[(\Lambda_i+V)\inv\big]\Sigma +I|}{\partial V} \\
+&\hspace{1.0cm} = \frac{1}{2} \sum_i \Big[ (\Lambda_i+V)\invt \Big(\sum_j \big[(\Lambda_j+V)\inv\big]\Sigma +I\Big)\invt \Sigma^\top (\Lambda_i+V)\invt \Big]
+\\
+&\hspace{1.0cm} =
+\frac{1}{2} \sum_i \Big[ (\Lambda_i+V)\inv Y (\Lambda_i+V)\inv \Big]
+\\
+%
+&\frac{\partial \, y^\top Y y}{\partial V} = 
+y^\top \frac{\partial \,  Y}{\partial V} y + 
+ \frac{\partial y^\top}{\partial V} Y y +  y^\top Y \frac{\partial y}{\partial V} 
+\;\;\; = \;\;\;  \sum_i \Big[ (\Lambda_i+V)\inv Y^\top yy^\top Y^\top (\Lambda_i+V)\inv \Big] \\
+&\hspace{1.0cm}  
+- \sum_i \Big[ (\Lambda_i+V)\inv (x_{n_i}-\mu) (Y y)^\top (\Lambda_i+V)\inv \Big] 
+- \sum_i \Big[ (\Lambda_i+V)\inv (y^\top Y)^\top (x_{n_i}-\mu)^\top (\Lambda_i+V)\inv \Big] \\
+&\hspace{1.0cm} =   \sum_i \Big[ T \Big( (\Lambda_i+V)\inv (Yy - (x_{n_i}-\mu)) \Big) - 
+T \Big( (\Lambda_i+V)\inv (x_{n_i}-\mu) \Big) \Big]
+\end{split}
+\end{equation}
+
+\end{document}

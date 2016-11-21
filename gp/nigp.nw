@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+\renewcommand{\rmdefault}{psbx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{noweb}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{fit}
+\usepackage{pgfplots}
+\usetikzlibrary{positioning}
+\usepackage{placeins} % for figures to not move outside their sections
+
+\providecommand{\tabularnewline}{\\}
+
+% BEGIN syntax highlighting using the listing package
+\usepackage{color}
+\definecolor{darkgreen}{rgb}{0,.5,.1}
+\definecolor{darkred}{rgb}{.5,.1,.1}
+\definecolor{darkblue}{rgb}{0,.1,.4}
+\usepackage{listings}
+\usepackage{graphicx}
+\lstset{language=Matlab} % determine language
+\lstset{deletekeywords={mean,cov}}
+\lstset{morekeywords={repmat,varargout,true,ischar,str2func,isfield,func2str,numel,isa}}
+% basic font settings
+\lstset{basicstyle=\small\ttfamily}
+% line numbers
+\lstset{numbers=left,numberstyle=\color{cyan},stepnumber=1,numbersep=5pt}
+% comments
+\lstset{commentstyle=\color{darkgreen}}
+% strings
+\lstset{stringstyle=\color{darkred},showstringspaces=false}
+% keywords
+\lstset{keywordstyle=\color{darkblue}}
+\lstset{emph={break,case,catch,continue,else,elseif,end,for,function,global,if,otherwise,persistent,return,switch,try,while},emphstyle=\color{blue}}
+\lstset{basewidth={0.55em,0.45em}}
+\lstset{xleftmargin=1.1em}
+\lstset{aboveskip=0em}
+\lstset{belowskip=-2em}
+\lstset{showlines=false}
+%% \begin{lstlisting}
+%%    Matlab code
+%% \end{lstlisting}
+% END syntax highlighting using the listing package
+
+\setlength{\textwidth}{166mm}
+\setlength{\textheight}{245mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\topmargin}{-25mm} 
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{1mm}
+
+\def\nwendcode{\endtrivlist \endgroup \vfil\penalty400\vfilneg}
+\let\nwdocspar=\smallbreak
+
+\title{Noisy Input Gaussian Processes for Timeseries: \texttt{nigp}}
+\author{Carl Edward Rasmussen}
+\date{July 15th, 2015}
+
+\begin{document}
+
+\maketitle
+
+This document describes an adaptation of the Noisy Input Gaussian
+Process (NIGP) method in section 2.4 of \cite{Mch14} and
+\cite{MchRas11} to the specific situation of timeseries modeling. In
+this task, the output at one time point is simultaneously the input to
+the following time point, which means that the input and output noise
+variances should be tied together.
+
+
+\bibliographystyle{plain}
+\begin{thebibliography}{}
+\bibitem[1]{Mch14}
+Andrew McHutchon. Nonlinear modelling and control using Gaussian
+processes. PhD thesis, University of Cambridge, Department of
+Engineering, Cambridge, UK, 2014.
+\bibitem[2]{MchRas11}
+Andrew McHutchon and Carl Edward Rasmussen. Gaussian process training
+with input noise. In Advances in Neural Information Processing Systems
+24, pages 1341-1349, Granada, Spain, 2011. Curran Associates, Inc.
+\end{thebibliography}
+
+
+
+\end{document}

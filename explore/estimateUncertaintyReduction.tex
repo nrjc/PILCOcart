@@ -1,0 +1,737 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{eulervm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amstext}
+\usepackage{bm}
+\usepackage[hidelinks]{hyperref}
+\usepackage{color}
+
+\newcommand{\argmin}[1]{\underset{#1}{\operatorname{arg}\operatorname{min}}\;}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\V}{\mathbb{V}}
+\definecolor{brown}{rgb}{0.54, 0.26, 0.07}
+\newcommand{\brown}[1]{\textcolor{brown}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\GP}{\mathcal{GP}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\nnn}{\nonumber \\}
+\newcommand{\nn}{\nonumber}
+\newcommand{\vv}[2]{\begin{bmatrix} #1 \\ #2 \end{bmatrix}} % veritcal vector 2 by 1
+\newcommand{\x}{{\bf x}}
+
+% tabbing    % http://tex.stackexchange.com/questions/73287/adding-tabs-or-creating-my-own-command
+\newcommand{\itab}[1]{\hspace{0em}\rlap{#1}}
+\newcommand{\tab}[1]{\hspace{.11\textwidth}\rlap{#1}}
+
+%opening
+\title{Predicting Next-Step Loss Distributions in PILCO}
+\author{Rowan McAllister}
+
+\begin{document}
+
+\maketitle
+
+\red{\textbf{\large This document is still under construction.}}
+
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{Active Learning for PILCO}
+ We wish to increase PILCO's data-efficiency by `upgrading' PILCO
+ from being a \textit{passive} reinforcement learning (RL) algorithm
+ to an \textit{active} RL algorithm.
+ Currently, PILCO greedily optimises an expected loss function (a sum of state-costs over time)
+ using a probabilistic dynamics model to predict distributions of trajectories, evaluated by the loss function.
+ In RL this is known as pure-exploitation.
+ But using a \textit{probabilistic} dynamics model allows us to not only predict a loss-mean for a given policy,
+ but a full loss \textit{distribution} (approximated as Gaussian).
+ I.e. we can predict the loss-mean \textit{and} a loss-variance of a particular policy
+ given the dynamics data we currently have.
+ PILCO currently optimises the loss-mean only, and ignores the loss-variance,
+ which can otherwise help guide exploration and evaluate potential information gains
+ from testing a particular policy.
+
+\subsection{Using Loss Distributions for Active Learning}
+ We can use loss-distributions to help balance exploitation and exploration.
+ For example, let the loss distribution for a policy with parameterisation $\theta$ be:
+ \begin{eqnarray}
+ L_\theta \sim \N(\mu_\theta,\sigma^2_\theta).
+ \end{eqnarray}
+ What policy parameterisation $\theta \in \Theta$ should we next test?
+ We might use some type of UCB algorithm to select
+ $\theta\leftarrow\underset{\theta}{\operatorname{argmin}}[\mu_\theta - \beta \sigma_\theta]$,
+ for some exploitation-exploration trade-off scalar parameter $\beta$.
+
+ Unfortunately, such a loss distribution is not sufficient for our active learning problem,
+ and might mislead our UCB type algorithm.
+ This is because the total loss-variance
+ $\sigma^2_\theta$
+ is the result of multiple sources of randomness:
+ 1) permanent system stochasticity,
+ 2) uncertainties due to our temporarily ignorance of the system because of the limited data we have.
+ We only care about the type of variance we can reduce,
+ i.e. our ignorance of the system.
+ \textbf{Q:} How can we get a handle on system-ignorance, and disregard system-stochasticity?
+ \textbf{A:} We can do so by fantasising about potential future data,
+ to predict if how extra data generated from policy parameterisation $\theta$
+ might reduce uncertainty in the loss in the next timestep.
+ If there is not predicted effect, then we predict all loss uncertainty is due to inherent system uncertainty
+ and no more data can help reduce that.
+ This is (possibly?) equivalent to understanding how the loss-mean might change in the next timestep.
+
+\subsection{Predicting Next-Step Loss Distributions}
+ So how can we implement an analytic solution for the question:
+ `\textit{how would adding (uncertain and correlated) fantasy dynamics data affect the loss distribution?}'.
+ Even if one only cares about the loss-mean,
+ they would still be interested in the variance of the loss-mean at some future point in time.
+ I.e. if we have some data at the current point in time $t$ then our predictive loss-mean at time $t$ is certain.
+ However, if we consider adding new fantasy data in the future at time $t+1$,
+ then our prediction conducted at time $t$ of the loss-mean at future time $t+1$ has a variance,
+ because the future loss is dependent on uncertain data we are yet to collect.
+
+ Even without uncertain fantasy-data, the system trajectories are uncertain due to inherent stochasticity and ignorance.
+ Yet, the uncertain fantasy data adds a new type of uncertainty to these trajectories.
+ To distinguish the uncertainty caused by the fantasy data when simulating system trajectories,
+ we can formulate the system-state as a hierarchically-uncertain, and composed of two uncertainty types we wish to distinguish.
+
+ The latter uncertainty type results from how the fantasy data would affect the GP posterior mean and variance
+ We approximate using the expected affect on the GP posterior variance w.r.t. the fantasy data,
+ i.e. assuming the variance is affected the same way across all possible fantasy data independent on the sampled fantasy data.
+ Doing so, we get access to all the nice identities in the GPH document.
+ From there, \texttt{simulate} would call the hierarchical version of \texttt{propagate} $H$ many times as before.
+
+\section{Problem Statement}
+
+We wish to minimise the loss $L_\theta$
+of our control system,
+w.r.t. the controller parameterisation $\theta \in \Theta$.
+The loss is a cumulative-cost over from time $t=0$ to horizon $t=H$, where individual costs covary.
+Using a probabilistic dynamics model, we compute loss \emph{distributions}:
+\begin{eqnarray}
+ L_\theta \sim \N(\mu_\theta,\sigma^2_\theta)&\;\leftarrow\;&{\tt simulate}(\theta)
+\end{eqnarray}
+The variance $\sigma^2_\theta$ is the result of:
+\begin{enumerate}
+ \item process noise
+ \item observation noise
+ \item ignorance (a lack of infinite data everywhere)
+\end{enumerate}
+To explore the parameterisation space $\Theta$ effectively using gradient-based optimisation methods,
+we wish to make use of our uncertainty information $\sigma^2_\theta$,
+to explore areas which have both a low mean $\mu_\theta$ and high variance $\sigma^2_\theta$.
+
+\medskip
+
+However, we only care about variance is because of the ability to gain information.
+Both the process noise and the observation noise are inherent to the system, and no amount of learning
+will reduce their contributions to variance $\sigma^2_\theta$.
+We therefore wish to distinguish the variance contribution solely due to our ignorance of the system
+(we'll denote this $v_\theta$).
+How can we get a handle on this variance-because-of-ignorance $v_\theta$?
+
+\paragraph{Loss-Variance from Ignorance:}\label{sec:handles}
+
+One approximation of $v_\theta$ follows the line of thought:
+if I just have enough data, then $v_\theta$ would be driven to zero.
+Whether or not we can drive $v_\theta$ to zero in the next timestep,
+let us \textit{assume} that what we learn in the next rollout is all we will ever learn.
+%This is also equivalent to assuming to assuming $v_\theta$ will be driven to zero in the next timestep,
+
+We being by generating fantasy intra-correlated data $u$, using {\tt simulate}.
+We should be able to add in uncertain fantasy data,
+and marginalise it out again to revert back to our current loss distribution.
+I.e.:
+\begin{eqnarray}
+ \sigma^2_{\theta,t} \approx \E_u[\sigma^2_{\theta,t+1}] + \V_u[\mu_{\theta,t+1}], \label{eq:marginal-variance}
+\end{eqnarray}
+where the approximation is that $\mathbb{C}_u[\sigma^2_{\theta,t+1},\mu_{\theta,t+1}] = 0$.
+%OK, but what do we value here?
+%One interpretation is we value how much our new data $u$ would reduce uncertainty
+OK we now estimate how much our new data $u$ would reduce uncertainty.
+(noting that any reduction of uncertainty must be the result of improving system ignorance,
+it cannot be the result of system stochasticity changing which is assumed fixed).
+The reduced uncertainty is:
+\begin{eqnarray}
+ %v_\theta =
+ \Delta \sigma^2_\theta =
+ \sigma^2_{\theta,t} - \E_u[\sigma^2_{\theta,t+1}].
+\end{eqnarray}
+Note, according to equation~\ref{eq:marginal-variance}
+this is equivalent
+to asking how would the uncertain fantasy data affect the variance of the future loss-mean?
+i.e.
+\begin{eqnarray}
+ \Delta \sigma^2_\theta = \V_u[\mu_{\theta,t+1}].
+\end{eqnarray}
+So this tells us we can still be greedy about optimising the loss-mean,
+except now we can incorporate the value of information gained in one timestep,
+and how it might affect the loss-mean at the next timestep which we wish to optimise.
+This is a myopic belief lookahead RL algorithm, that assumes we can learn from one more timestep worth of datum,
+but then learn nothing further at time $t+2$ onwards etc.
+
+\section{Solutions to Incorporate Fantasy Data}\label{sec:solns}
+
+Using {\tt simulate}, we generate predictive state distributions $x_t$ from time $t=0$ to time $t=H$,
+from which we can fantasise about what the future data might look like.
+We will denote the expectation and variance of each state distributions along as $\E[x_t]$ and $\V[x_t]$.
+Note states can also covary: $\C[x_t,x_{t+\tau}]$.
+
+\subsection{Solution A: \\ \small{Certain Fantasy Data with Certain Location at State-Mean}}
+
+The current solution (currently implemented in the code) generates fantasy
+data using {\tt simulate} to generate state distributions at each time step,
+and then assumes the fantasy data it will generate is non-noisy data points located at the state-mean
+of each state distribution:
+\begin{eqnarray}
+ \text{Solution A:} \quad\quad u_{0:H} \sim \N(\E[x_{0:H}],0)
+\end{eqnarray}
+ %It then computes a variance for the Bayesian optimisation routine to use based on $\Delta \sigma^2_\theta$.
+
+\subsection{Solution B: \\ \small{Uncertain Fantasy Data with Distribution equal to State Distribution}}
+
+We can make use of simulate's uncertainty information $\V[x_{0:H}]$. % w.r.t. $u$.
+This solution assumes the fantasy data points
+were observed noisily,
+with noise of each datum $u_t$
+%data noise levels of each of these fantasy data points $u_t$
+%(where $t$ progressing from time $0$ to horizon $H$)
+equal to the predictive variance that simulate provides at each time step: $u_t\sim\N(\E[x_t],\V[x_t])$.
+After incorporating uncertain data into our GP dynamics model,
+we then make predictions based on our fantasy-dynamics-model
+which uses combinations of the regular (real) data combined with the very noisy fantasy data:
+\begin{eqnarray}
+ \text{Solution B:} \quad\quad u_{0:H} \sim \N(\E[x_{0:H}],\V[x_{0:H}])
+\end{eqnarray}
+
+\subsection{Solution C: \\ \small{Certain Fantasy Data with Uncertain Locations, MC-Sampled from State-Distribution}}
+
+The problem with Proposed Solution B, is that it does not reflect what really happens.
+The data we are about to receive is not a single set of
+very-noisy datum (one per time step), but rather a sample from a distribution over plausible sets
+of non-noisy data points.
+Proposed Solution B is making a pessimistic assuming about the expected information gain,
+but in fact we know the expected information gain will be much higher,
+we simply do not know what the information is yet!
+
+What would a `more correct' solution look like?
+Consider taking $N$ MC-samples from the predicted state distribution,
+i.e. $N$ sets of plausible fantasy data $u_{0:H}^{(n)}$ for $n \in [1,N]$.
+With each sample $u_{0:H}^{(n)}$, we retrain a corresponding fantasy dynamics models
+%and compute the new expectation of expected cumulative cost (EE),
+%and variance of expected cumulative cost (VE).
+%By contrast, the `correct' thing to do is MC-Sampling datum $u_{0:H}^{(n)}$ for $n\in[1,N]$,
+%and then training $N$ fantasy-dynamics-model
+(where the $n$'th fantasy-dynamics-model is trained from using the current real data
+$\x$ \textit{and} the $n$'th fantasy data $u_{0:H}^{(n)}$).
+We can then make mean and variance predictions using each of the $N$ models,
+which gives then allows us to estimate variance of the loss-means and expectation of the loss-variances etc.
+So each MC-sample follows:
+\begin{eqnarray}
+ \text{Solution C:} \quad\quad u_{0:H}^{(n)} \sim \; \N(\bar{u}_{0:H}^{(n)},0), \quad\quad
+ \bar{u}_{0:H}^{(n)} \stackrel{iid}{\sim} \N(\E[x_{0:H}],\V[x_{0:H}]),
+\end{eqnarray}
+
+%=================================================================================================
+\section{Solution D: \\ \small{Certain Fantasy Data with Uncertain Location in State-Distribution}}
+
+How can we do even better than proposed solution C?
+%Ideally we can formulate an analytic solution of Proposed Solution C.
+Here we attempt to formulate the analytically analogue of solution C.
+
+\subsection{Assumptions}
+
+The following approximations concern how the GP posterior changes
+w.r.t. additional fantasy data $u_{0:H}$.
+We also use the shorthand of
+input $u=u_{0:H-1}$ and
+corresponding targets $v=u_{1:H}$.
+\begin{enumerate} \itemsep0em
+ \item We assume the hyper-parameters remain fixed.
+\end{enumerate}
+
+\subsection{How Additional Fantasy Data Affects GP Posterior}\label{sec:affectGP}
+
+Let $\x$ represent the training points comprising the entire history of real-observations,
+$x_*$ represent a test-point, $f_* = f(x_*)$ represent a test-target,
+and random fantasy data points $u$ with targets $v$
+we would combine with the rest of our training data.
+%
+The posterior distribution is
+\begin{eqnarray}
+\E[f_*] & = & k_{*x}K\inv y \;=\; k_{*x}\beta, \\
+\V[f_*] & = & k_{**} - k_{*x}K\inv k_{*x},
+\end{eqnarray}
+and
+$k(\cdot,\cdot)$ is the kernel, %hyperparameters unchanged,
+$K$ and $K\inv $ precomputed at the root node,
+where
+\begin{itemize}
+ \item $K = k(\x,\x) +\sigma_n^2 I$, be the current covariance matrix, size $n \times n$
+ \item $K'$ be the covariance matrix with additional points $u$, size $(n+H) \times (n+H)$
+ \item $k_{ux} = k(u,\x), \;\;\text{and}\;\; k_{*x} = k(x_*,\x)$, etc
+\end{itemize}
+
+% TODO I don't include a noise term yet in the K' matrix for the new k_{uu} term. Fix?
+
+\noindent
+We can represent our updated-belief covariance matrix $K'$
+after observing additional datum $\{u,v\}$ as:
+\begin{eqnarray}
+K' & = & \begin{bmatrix}
+K & k_{xu} \\
+k_{ux} & k_{uu}
+\end{bmatrix} \\
+%
+(K')\inv  & = & \begin{bmatrix}
+\hat{P} & \hat{Q} \\
+\hat{Q}^{\top} & z_{uu}\inv
+\end{bmatrix}
+\end{eqnarray}
+where
+\begin{eqnarray}
+z_{uu}         & = & k_{uu}-k_{ux}K\inv k_{xu} = \mathbb{V}[f_u], \\
+\hat{Q}        & = & -K\inv k_{xu} z_{uu}\inv  \\
+\hat{Q}^{\top} & = & -z_{uu}\inv k_{ux}K\inv , \\
+\hat{P}        & = & K\inv  + K\inv k_{xu} z_{uu}\inv  k_{ux}K\inv ,
+\end{eqnarray}
+using results from GPML page 201.
+Now let:
+\begin{itemize}
+ \item $\E[f_*]'$ be the updated $\E[f_*]$
+ \item $\V[f_*]'$ be the updated $\V[f_*]$
+ \item $y' = \begin{bmatrix} y \\ v \end{bmatrix}$
+ \item $k_{*x}' = [k_{*x} \,,\, k_{*u}]$
+ \item $z_{*u} = k_{*u} - k_{*x} K\inv k_{xu}$
+\end{itemize}
+
+\subsubsection{Affect on GP Posterior Mean}\label{sec:affectmean}
+The updated GP mean at test point $x_*$ with additional observations $\{u,v\}$ is:
+\begin{eqnarray}
+ \E[f_*]'
+ & = & k_{*x}'(K')\inv y' \nnn
+ & = & [k_{*x}, k_{*u}] \begin{bmatrix} \hat{P} & \hat{Q} \\  \hat{Q}^{\top} & z_{uu}\inv  \end{bmatrix} \begin{bmatrix} y \\ v \end{bmatrix} \nnn
+ & = & (k_{*x}\hat{P} + k_{*u}\hat{Q}^{\top})y + (k_{*x}\hat{Q} + k_{*u}z_{uu}\inv )v \nnn
+ & = & (k_{*x}K\inv  + k_{*x}K\inv k_{xu} z_{uu}\inv  k_{ux}K\inv  - k_{*u}z_{uu}\inv k_{ux}K\inv )y + (-k_{*x}K\inv k_{xu} z_{uu}\inv  + k_{*u}z_{uu}\inv )v \nnn
+ & = & k_{*x}K\inv y + (k_{*x}K\inv k_{xu} - k_{*u})(z_{uu}\inv k_{ux}K\inv )y + (-k_{*x}K\inv k_{xu} + k_{*u})z_{uu}\inv v \nnn
+ & = & \E[f_*] - z_{*u}z_{uu}\inv k_{ux}K\inv y + z_{*u}z_{uu}\inv v \nnn
+ & = & \E[f_*] + z_{*u}z_{uu}\inv (v - k_{ux}K\inv y) \nnn
+ & = & \E[f_*] + z_{*u}z_{uu}\inv (v - \E[f_u])\label{eq:affectmean}
+\end{eqnarray}
+
+\subsubsection{Affect on GP Posterior Variance}\label{sec:affectvar}
+The updated GP variance at test point $x_*$ with additional observations $u$ is:
+\begin{eqnarray}
+ \V[f_*]'
+ & = & k_{**} - k_{*x}'(K')\inv k_{x*}' \nnn
+ & = & k_{**} - [k_{*x}, k_{*u}] \begin{bmatrix}\hat{P} & \hat{Q} \\ \hat{Q}^{\top} & z_{uu}\inv \end{bmatrix} \begin{bmatrix}k_{x*} \\ k_{u*}\end{bmatrix} \nnn
+ & = & k_{**} - (k_{*x}\hat{P} + k_{*u}\hat{Q}^{\top})k_{x*} - (k_{*x}\hat{Q} + k_{*u}z_{uu}\inv )k_{u*} \nnn
+ & = & k_{**} - (k_{*x}K\inv  + k_{*x}K\inv k_{xu} z_{uu}\inv  k_{ux}K\inv  - k_{*u}z_{uu}\inv k_{ux}K\inv )k_{x*} - (-k_{*x}K\inv k_{xu} z_{uu}\inv  + k_{*u}z_{uu}\inv )k_{u*} \nnn
+ & = & (k_{**} - k_{*x}K\inv k_{x*}) - (k_{*x}K\inv k_{xu} - k_{*u})(z_{uu}\inv k_{ux}K\inv )k_{x*} - (-k_{*x}K\inv k_{xu} + k_{*u})z_{uu}\inv k_{u*} \nnn
+ & = & \V[f_*] + z_{*u}z_{uu}\inv k_{ux}K\inv k_{x*} - z_{*u}z_{uu}\inv k_{u*} \nnn
+ & = & \V[f_*] - z_{*u}z_{uu}\inv (k_{u*} - k_{ux}K\inv k_{x*}) \nnn
+ & = & \V[f_*] - z_{*u}z_{uu}\inv z_{u*}\label{eq:affectvar}
+\end{eqnarray}
+
+We may just wish to make life simpler by using the expectation (under random $\{u,v\}$)
+of the new predictive variance, rather than the variance-of-variance.
+
+\subsection{How does this fit together?}
+
+OK so we need to understand how:
+\begin{enumerate}
+ \item additional fantasy data $u_{0:H}$ affects our predictions (see Sec~\ref{sec:affectGP}),
+ \item changes in the mean and variance of the simulated states effect a distribution in $L$-mean
+ at time $t+1$, i.e. a one-step lookahead.
+ %(i.e. with one-step lookahead we do not care about future $L$ variance).
+\end{enumerate}
+
+Previously in Sec~\ref{sec:solns} we talked of {\tt simulate} generating predictive state distributions
+$p(x_t)$ from time $t=0$ to time $t=H$.
+Now we talk about the altered predictive state distributions $p(x'_t)$,
+which have been altered because of (random) additional fantasy data $u_{0:H}$.
+
+\begin{itemize}
+ \item \textbf{Time t=0:}
+
+ We begin by noting $p(x'_0) = p(x_0)$,
+ since any additional data has no effect on the initial distribution
+ (the distribution over possible system starting positions).
+ %
+ \item \textbf{Time t=1:}
+
+ Before considering fantasy data, let us discuss the normal case without.
+
+ \textbf{Without fantasy data:}
+
+ To predict forwards one timestep,
+ we input distribution $p(x_0)$ into the GP dynamics model.
+ Even with a certain input of $p(x_0)=\delta(x_0)$,
+ the output $p(x_1)\sim\N(\mu_1,\Sigma_1)$ will be uncertain.
+ So for uncertain input $p(x_0)\sim\N(\mu_0,\Sigma_0)$, the original non-filtered PILCO
+ computes uncertain $p(x_1)$
+ by grouping both sources of uncertainty:
+ $\mu_1 = \E_{x_0}[\E_f[f(x_0)]]$, and
+ $\Sigma_1 = \V_{x_0}[\E_f[f(x_0)]] + \E_{x_0}[\V_f[f(x_0)]]$.
+
+ \textbf{With fantasy data, and certain input $p(x'_0)=\delta(x'_0)$:}
+
+ To introduce (uncertain) fantasy data is to introduce a new form of uncertainty.
+ Note: we should be able to add fantasy data in,
+ and marginalise it out again to
+ return to aforementioned case distribution.
+ So the marginal state probabilities of $p(x'_t)$ are not expected(?) to change for any $p(x_t)$.
+ %
+ So in the case of certain input $p(x'_0)=\delta(x'_0)$,
+ we have $p(x'_1)=\N(\mu_1,\Sigma_1)$,
+ where $\mu_1 = \E_u[\E_f[f(x'_0)]]$,
+ and $\Sigma_1 = \V_f[f(x'_0)] = \V_u[\E_f[f(x'_0)]] + \E_u[\V_f[f(x'_0)]]$.
+
+ However, we can \textit{decompose} uncertainty in $p(x'_1)$
+ and track two separate sources of variance $p(x'_1)$,
+ to understand the affect each has in simulation.
+ For time $t=1$, we are simply concerned with how to output a binary-decomposition
+ of $p(x'_1)$. We will worry about how to input it into a GP later at time $t+2$.
+
+ Let us distinguish uncertainty in $p(x'_1)\sim\N(\mu_1,\Sigma_1)$ caused by fantasy data,  % TODO: this is this parameters for P(x) not p(x').
+ by denoting it $\Sigma^{u}_1$,
+ such that $\Sigma_1 = \Sigma^{u}_1 + \Sigma^{x}_1$.
+ OK, how can we compute $\Sigma^{u}_1$?
+ Using results from Section~\ref{sec:affectGP},
+ we have an expression of GP output $p(x'_1)$ as a relative change from $p(x_1)$,
+ given uncertain data $u_{0:H}$.
+ The (uncertain) fantasy data affects our GP mean and our GP variance (in an uncertain way).
+
+ If $u$ was nonexistent, or placed far away,
+ then we would expect $\Sigma^{u}_1=0$,
+ i.e. no variance in $\Sigma_1$ is attributed to $u$.
+ In such a case, we would expect two things 1) the mean to be unaffected: $\V_u[\E_f[f(x'_0)]]=0$,
+ and 2) the variance remains unreduced: $\V_u[\E_f[f(x'_0)]] = \Sigma_1$.
+ Now if placing $u$ instead completely determined the new posterior to something certain,
+ then we expect $\Sigma^{u}_1=\Sigma_1$
+ (i.e. all variance in $\Sigma_1$ attributed to $u$),
+ where $\V_u[\E_f[f(x'_0)]]=\Sigma_1$
+ and variance collapses $\V_u[\E_f[f(x'_0)]] = 0$.
+
+ So perhaps we can attribute
+ $\Sigma^{u}_1 = \V_u[\E_f[f(x'_0)]] = \Sigma_1-\E_u[\V_f[f(x'_0)]]$.
+
+ \textbf{With fantasy data, and uncertain input $p(x'_0)\sim\N(\mu_0,\Sigma_0)$:}
+
+ % $\Sigma^{x}_1 \approx \V_{x_0}[\E_f[f(x_0)]] + \E_{x_0}[\V_f[f(x_0)]]$.
+
+ % An alternate way to think about $p(x'_1)$ follows.
+ % Note the input $p(x_1)$ was `already' itself a distribution,
+ % so $p(x'_1)$ is sort of distribution over distributions
+ % (since different realisations of distribution $p(x'_1)$ are possible
+ % from random training data $u_{0:H}$).
+ %
+ % I.e. we can ask, what is the variance on the predictive mean
+ %
+ % How best to represent the different sources of uncertainty from $p(x'_1)$,
+ % i.e. from both 1) uncertainty of dynamics function $f$,
+ % and 2) uncertainty of fantasy data $u_{0:H}$?
+
+ With uncertain input $p(x'_0)\sim\N(\mu_0,\Sigma_0)$,
+ we get output $p(x'_1)\sim\N(\mu_1,\Sigma_1)$
+ where $\mu_1 = \E_{x'_0}[\E_f[f(x'_0)]]$, and
+ $\Sigma_1 = \V_{x'_0}[\E_f[f(x'_0)]] + \E_{x'_0}[\V_f[f(x'_0)]]$.
+ OK, so to be consistent with the delta input case, we want a similar effect when
+ $p(x'_0)$ is tight.
+
+ So perhaps we can instead attribute
+ $\Sigma^{u}_1 = \V_u[\E_{x'_0}[\E_f[f(x'_0)]]] =
+ \Sigma_1-\E_u[\V_{x'_0}[\E_f[f(x'_0)]] + \E_{x'_0}[\V_f[f(x'_0)]]]$.
+ This has the desired behaviour with small $\Sigma_0$.
+ What about large $\Sigma_0$?
+
+ \item \textbf{Time t=2+:}
+
+ OK so we have a form for sub-components $\Sigma_1 = \Sigma^{u}_1 + \Sigma^{x}_1$.
+ Now, how do we continue to recurse?
+ Well $p(x'_1)$, which was the output at time $t=0$,
+ is also the input to the GP at time $t=1$.
+ So now, not only are the GP outputs have dual-variances, but so too the GP inputs.
+
+ How can we deal with this?
+ Well the GPH framework handles GP prediction
+ of hierarchically-uncertain inputs.
+ In GPH, inputs have distribution over distributions,
+ which takes the input mean as random but approximates the input variance as fixed (for simplicity).
+ It turns out the variance and mean-variance are quite similar,
+ the marginal always adds up to the same, even if the variances are switched,
+ so we can perhaps use GPH to help us out with our dual-variance task.
+
+ So we'll need to do a full simulate up to horizon $H$ using GPH
+ instead of the normal non-hierarchical noisy-GP prediction.
+
+ So, with input $p(x'_1)=\N(\mu_1,\Sigma^{u}_1 + \Sigma^{x}_1)$,
+ We treat it hierarchically for GPH as $p(x'_1)=\N(\N(\mu_1,\Sigma^{u}_1),\Sigma^{x}_1)$.
+
+ OK so we can input this into the GPH to output:
+ $p(x'_2)=\N(\N(\mu_2,\hat{\Sigma}^{u}_2),\hat{\Sigma}^{x}_2)$.
+ But is this the end of the story?
+ We still need to inform the GP at this next stage,
+ how much the new fantasy data affected this transition.
+ It is simply propagated the affects of the fantasy data from the previous step forwards
+ as if the fantasy data only existed in the first timestep.
+
+ So we can propagate forward and then `take from $\hat{\Sigma}^{x}_2$'
+ and `give to $\hat{\Sigma}^{u}_2$'.
+ The equal take-give is because of the
+ conserved quantity in $\Sigma_t$,
+ i.e. marginalising out any $u$ should result in the original variance $\Sigma_t$.
+ OK so how much do we take from $\hat{\Sigma}^{x}_2$ then?
+
+ Ignoring the current binary-decomposition,
+ we would take $\V_u[\E_{x'_1}[\E_f[f(x'_1)]]]$ equal to
+ $\Sigma_2-\E_u[\V_{x'_1}[\E_f[f(x'_1)]] + \E_{x'_1}[\V_f[f(x'_1)]]]$.
+ Indeed this is what we would take if $\Sigma^{u}_1=0$.
+ How about if $\Sigma^{u}_1=\Sigma_1$, i.e. if the fantasy data
+ was responsible for the entire input variance?
+ Then surely this explains all subsequent variances: $\Sigma^{u}_t=\Sigma_t$ for $t\geq2$.
+ OK so, what about in-between,
+ i.e. the input variance was explained `half' of the fantasy data last timestep,
+ and another half this round? Do we expect the fantasy data to explain $3/4$ of the current variance?
+ So if it explains proportion $\rho_{1:t-1}$ before
+ (resulting from fantasy-data affects accumulated from all timesteps before from $1$ to $t-1$)
+ and $\rho_{t}$ now (resulting from fantasy-data affects on just this timestep),
+ then we expect total affect at this timestep, $\rho_{1:t}$,
+ to satisfy the following (for any $a\in[0,1]$ and $b\in[0,1]$):
+
+ \begin{tabular}{ c | c || c }
+  \hline
+  $\rho_{1:t-1}$ & $\rho_{t}$ & $\rho_{1:t}$ \\
+  \hline
+  0 & $a$ & $a$ \\
+  1 & $a$ & 1 \\
+  $a$ & 0 & $a$ \\
+  $a$ & 1 & 1 \\
+  $a$ & $b$ & $1-(1-a)(1-b)$ \\
+  \hline
+ \end{tabular}
+
+ So the rule (i.e. the function $f_\rho$) must be:
+ $\rho_{1:t} = f_\rho(\rho_{1:t-1},\rho_{t}) = \rho_{1:t-1} + \rho_{t} - \rho_{1:t-1}\rho_{t}$.
+ Note this still satisfies $\rho_{1:t}\in[0,1]$.
+ OK so note $1-(1-a)(1-b) = a+b-ab \geq \max(a,b)$.
+ So the total proportion $\rho_{1:t}$ is non-decreasing
+ as time $t$ progresses from $0$ to $H$.
+
+ OK so our update is:
+ $\Sigma^{u}_2 = \hat{\Sigma}^{u}_2 + \tilde{\Sigma}^{u}_2 - \hat{\Sigma}^{u}_2 \tilde{\Sigma}^{u}_2$,
+ where $\tilde{\Sigma}^{u}_2 = \V_u[\E_{x'_1}[\E_f[f(x'_1)]]] =
+ \Sigma_2-\E_u[\V_{x'_1}[\E_f[f(x'_1)]] + \E_{x'_1}[\V_f[f(x'_1)]]]$.
+ I'm not quite sure how the multivariate multiplication (i.e. $\hat{\Sigma}^{u}_2 \tilde{\Sigma}^{u}_2$)
+ should work, perhaps point-wise?
+ Note a point-wise multiplication of two PSD matrices is also PSD (Schur product theorem). % https://en.wikipedia.org/wiki/Schur_product_theorem
+
+ OK so the $\hat{\Sigma}^{u}_2$ part is easy to compute,
+ it is the GPH output.
+ But what about $\tilde{\Sigma}^{u}_2$?
+ We need to compute $\tilde{\Sigma}^{u}_2$ using some new math,
+ which we do below.
+ %explain $\rho_{1:t} = (1-\rho_{1:t-1})(1-\rho_{t})$.
+
+\end{itemize}
+
+\subsection{Key Identities}
+
+\subsubsection{The Main Equation}
+
+OK so we need a way of computing
+\begin{equation} % TODO: is it OK to use \mu_2 and \Sigma_2 below?
+\tilde{\Sigma}^{u}_2 = \underbrace{\V_u[\underbrace{\E_{x'_1}[\E_f[f(x'_1)]]}_{\mu_2}]}_{\text{part 1}} =
+ \underbrace{\Sigma_2-\E_u[\underbrace{\V_{x'_1}[\E_f[f(x'_1)]] + \E_{x'_1}[\V_f[f(x'_1)]]}_{\Sigma_2}]}_{\text{part 2}}.
+ \end{equation}
+I.e. we can compute either part 1 or part 2, whichever is easiest.
+We'll use the GPH document to get the forms of
+$\mu_2$ (Eq.~\ref{eq:E}) and $\Sigma_2$ (Eq.~\ref{eq:V}).
+
+\subsubsection{Previous Identities}
+
+Let's start with some identities already known.
+The GPH document has identities concerning
+kernel integration and GP-output with uncertain inputs:
+
+\framebox{\parbox{\textwidth}{
+\begin{eqnarray}
+\int q(x,t,\Lambda,V){\cal N}(t|\mu,\Sigma)dt\;&=&\;q(x,\mu,\Lambda,\Sigma+V),\label{eq:q}\\
+\int q(x,t,\Lambda_a,V)\,q(t,x',\Lambda_b,V)\,{\cal
+  N}(t|\mu,\Sigma)dt\;&=&\;Q(x,x',\Lambda_a,\Lambda_b,V,\mu,\Sigma),\label{eq:Q1}\\
+\int Q(x,x',\Lambda_a,\Lambda_b,0,\mu,V){\cal N}(\mu|m,\Sigma)d\mu\;&=&\;Q(x,x',\Lambda_a,\Lambda_b,0,m,\Sigma+V).\nnn
+k_a(x,x')\;&=&\;s_a^2q(x, x',\Lambda_a,0).
+\end{eqnarray}
+and
+
+Consider making predictions from $a=1,\ldots,E$ GPs at $x^*$ with specification
+\begin{equation}
+p(x^*|m,\Sigma)\;\sim\;{\cal N}(m, \Sigma).
+\end{equation}
+%
+We have the following expressions for the predictive mean, variances
+and input output covariances
+\begin{eqnarray}
+\E[f^*|m,\Sigma]\;&=&\;\int\big(s_a^2\beta_a^\top
+ q(x_i,x^*,\Lambda_a,0)+\theta_a^\top x^*\big){\cal N}(x^*|m,\Sigma)dx^*\label{eq:E}\\
+ &=&\;s_a^2\beta_a^\top q^a+\theta_a^\top m,\label{eq:m}\\
+\C[x^*,f_a^*|m,\Sigma]\;&=&\;\int (x^*-m)\big(s^2_a\beta_a^\top
+ q(x,x^*,\Lambda_a,0)+\theta_a^\top x^*\big){\cal N}(x^*|m,\Sigma)dx^*\nnn
+ &=&\;s^2_a\Sigma(\Lambda_a+\Sigma)^{-1}(x-m)\beta_aq^a+\Sigma\theta_a\;=\;
+ \Sigma C_a+\Sigma\theta_a,\label{eq:c}\\
+\V[f_a^*|m,\Sigma]\;&=&\;\V[\E[f_a^*|x^*]|m,\Sigma]+\E[\V[f_a^*|x^*]|m,\Sigma]\label{eq:V}\\
+ &=&\;\V[s_a^2\beta_a^\top q(x,x^*,\Lambda_a,0)+\theta_a^\top x^*]+\delta_{ab}\E[s_a^2-k_a(x^*,x)(K_a+\Sigma_\varepsilon^a)^{-1}k_a(x,x^*)]\label{eq:v}\\
+ &=&\;s_a^2s_b^2\big[\beta_a^\top (Q^{ab}-q^aq^{b\top})\beta_b
+ +\delta_{ab}\big(s_a^{-2}-\operatorname{tr}((K_a+\Sigma_\varepsilon^a)^{-1}Q^{aa})\big)\big]
+ +C_a^\top\Sigma\theta_b+\theta_a^\top\Sigma C_b+\theta_a^\top\Sigma\theta_b,\nnn
+ \text{\ \ where\ \ }\;q^a_i\;&=&\;q(x_i,m,\Lambda_a,\Sigma), \text{\ \ and\ \ }
+ Q^{ab}_{ij}\;=\;Q\big(x_i,x_j,\Lambda_a,\Lambda_b,0,m,\Sigma\big).\nn
+\end{eqnarray}
+}}
+
+And Section~\ref{sec:affectGP} has identities concerning
+relative changes to the GP posterior (mean and variance):
+
+\framebox{\parbox{\textwidth}{
+\begin{eqnarray}
+z_{uu} & = & k_{uu}-k_{ux}K\inv k_{xu} = \mathbb{V}[f(u)], \label{eq:zuu}\\
+z_{*u} & = & k_{*u}-k_{*x}K\inv k_{xu}\label{eq:zstaru},
+\end{eqnarray}
+}}
+
+so if $|u|=1$ (with outer $\delta_{ab}$ around the expression?), then
+\begin{eqnarray}
+ \E_u[z_{uu}] & = & \E[k_{uu}-k_{ux}K\inv k_{xu}], \nnn
+              & = & s^2-s^4(K\inv  \odot Q), \nnn
+              & = & s^2-s^4\tr(K\inv Q).
+\end{eqnarray}
+
+\subsubsection{New Basic Identities}
+
+Let's start with some basic identities.
+Let any pairwise fantasy points
+\begin{eqnarray}\begin{bmatrix} u_1 \\ u_2 \end{bmatrix}
+\;\sim\; \N \Big( \begin{bmatrix} \mu_1 \\ \mu_2 \end{bmatrix}, % TODO: the \mus are confused with previous simulation uses.
+\begin{bmatrix} \sigma^2_1 & c \\ c & \sigma^2_2 \end{bmatrix} \Big)
+\end{eqnarray}
+
+To integrate out an uncertain fantasy datum against a certain datum
+inside a kernel
+we use Eq.~\ref{eq:q}:
+\begin{eqnarray}
+ \E_{u}[k(u_1,x)]
+ & = & s_a^2 \E_{u}[ q(u_1,x,\Lambda_a,0)],\nnn
+ & = & s_a^2 q(\mu_1,x,\Lambda_a,\sigma^2_1)
+\end{eqnarray}
+% When we have multiple correlated fantasy datum, i.e. $|u|>1$,
+% then how can we integrate out the datum from the kernel?
+% In Eq.~\ref{eq:q} we can do this when one of the inputs in random,
+% but now both possibly are.
+Now what about when both inputs are uncertain and correlated?
+We may wish to answer this question to compute the mean of $k_{uu}$ (Eq.~\ref{eq:zuu}).
+\begin{eqnarray}
+ \E_{u}[k(u_1,u_2)]
+ & = & s_a^2 \E_{u}[ q(u_1,u_2,\Lambda_a,0)] \nnn
+ & = & s_a^2 \E_{u}[ q(u_1-u_2,0,\Lambda_a,0)] \nnn
+ & = & s_a^2 q(\mu_1-\mu_2,0,\Lambda_a,\sigma^2_1 + \sigma^2_2 -2c) \nnn
+ & = & s_a^2 q(\mu_1,\mu_2,\Lambda_a,\sigma^2_1 + \sigma^2_2 -2c),
+\end{eqnarray}
+noting $(u_1-u_2)\sim\N(\mu_1-\mu_2,\sigma^2_1 + \sigma^2_2 -2c)$.
+%
+Now how computing the mean of the other term in Eq.~\ref{eq:zuu}, i.e. $k_{ux}K\inv k_{xu}$?
+Well using Eq.~\ref{eq:qtrick}:
+\begin{eqnarray}
+ \E_u[k_{u_1x}K\inv k_{xu_2}]
+ & = & s^4\tr\left( K\inv \E_u\left[q(x,u_1,\Lambda_a,0)q(x',u_2,\Lambda_b,0)\right]\right) \nnn
+ & = & s^4\tr\left( K\inv q\left(\vv{x}{x'},\vv{\mu_1}{\mu_2},
+ \begin{bmatrix} \Lambda_a & 0 \\ 0 & \Lambda_b \end{bmatrix},
+ \begin{bmatrix} \sigma^2_1 & c \\ c & \sigma^2_2 \end{bmatrix}\right)\right),
+\end{eqnarray}
+with similar derivation for Eq.~\ref{eq:zstaru}.
+Thus we can now compute expectations for both Eq.~\ref{eq:zuu} and Eq.~\ref{eq:zstaru}.
+
+\subsubsection{Other New Identities}
+
+% TODO: note this currently has no .
+
+% TODO: unsure if the following is correct:
+\paragraph{Expectation-of-expectation:} (Eq.\ref{eq:affectmean}) is (note I haven't split up the u-v indices in $z_{uu}$ yet):
+\begin{eqnarray}
+ \E_u[\E[f_*]'] % & = & \int_{uv} \E[f_*] + z_{*u}z_{uu}\inv (v - \E[f_u]) p(u)p(v|u) \nnn
+                    & = & \E[f_*] + \int_u z_{*u}z_{uu}\inv  \left[ \int_v (v - \E[f_u]) p(v|u) \right]  p(u) \nnn
+                    & = & \E[f_*] + \int_u z_{*u}z_{uu}\inv  \left[0\right]  p(u) \nnn
+                    & = & \E[f_*]
+\end{eqnarray}
+\paragraph{Variance-of-expectation:} (Eq.\ref{eq:affectmean}):
+\begin{eqnarray}
+ \V_u[\E[f_*]'] & = & \V[z_{*u}z_{uu}\inv (v - \E[f_u])] \nnn
+                & = & \E[z_{*u}z_{uu}\inv (v - k_{ux}\beta)(v - k_{ux}\beta)^\top z_{uu}\inv z_{u*}] -
+                      \E_u[\E[f_*]']^2
+\end{eqnarray}
+\paragraph{Expectation-of-variance:} (Eq.\ref{eq:affectvar}):
+\begin{eqnarray}
+ \E_u[\V[f_*]'] & = & \V[f_*] - \E_u[z_{*u}z_{uu}\inv z_{u*}]
+\end{eqnarray}
+
+\subsection{Notes and Open Questions}\label{sec:notes}
+
+\begin{enumerate}
+ \item We can use covariance information from each $x_t$ to $x_{t+1}$ etc
+ to inform on correlations of $u_t$ to $u_{t+1}$ etc.
+ \item Looking at affect on expectation (Sec.~\ref{sec:affectmean}),
+ I assume the expectation (under $u$) of the updated mean does not change from the previous mean value
+ because of the symmetric $(v - \E[f_u])$ term in Eq.\ref{eq:affectmean},
+ i.e. $\E_u[\E[f_*]'] = \E[f_*]$? I'll just concentrate on the variance of the expectation.
+ \item Still need to incorporate additive linear models in GP posterior mean, e.g. $\theta^\top x_*$.
+ \item Note, dealing with the inverted term $z_{uu}\inv$ might get tricky,
+ but since $z_{uu} \leq \sigma_n^2$,
+ we can perhaps approximate: $z_{uu} \approx \sigma_n^2$.
+ Not sure - one some small datasets I tested with this can be out by a factor of 4.
+ Also the above approximation is maybe OK in one dimension, not sure about more.
+\end{enumerate}
+
+\appendix
+
+\newcommand{\mumu}{\vv{\mu}{\mu}}
+\newcommand{\xx}{\vv{x}{x'}}
+\newcommand{\ttt}{\begin{bmatrix} t \\ t\end{bmatrix}}
+\newcommand{\LambdaLambda}{\begin{bmatrix} \Lambda_a & 0 \\ 0 & \Lambda_b \end{bmatrix}}
+\newcommand{\SigmaSigma}{\begin{bmatrix} \Sigma & \Sigma \\ \Sigma & \Sigma \end{bmatrix}}
+\section{More Detailed Derivations}
+From the gph.pdf document we have:
+\begin{eqnarray}
+\int q(x,t,\Lambda,V){\cal N}(t|\mu,\Sigma)dt\;=&\;q(x,\mu,\Lambda,\Sigma+V),\\
+\int q(x,t,\Lambda_a,V)\,q(t,x',\Lambda_b,V)\,{\cal
+  N}(t|\mu,\Sigma)dt\;=&\;Q(x,x',\Lambda_a,\Lambda_b,V,\mu,\Sigma),\label{eq:Q1}\\
+\int Q(x,x',\Lambda_a,\Lambda_b,0,\mu,V){\cal N}(\mu|m,\Sigma)d\mu\;=&\;Q(x,x',\Lambda_a,\Lambda_b,0,m,\Sigma+V).
+\end{eqnarray}
+And note another way to express the left hand side of Eq.~\ref{eq:Q1} is:
+\begin{eqnarray}
+&\int q(x,t,\Lambda_a,V)\,q(t,x',\Lambda_b,V)\,\N(t|\mu,\Sigma)dt \nnn
+ &\;=\; \int q\left(\xx,\ttt,\LambdaLambda,0\right)\,\N\left(\ttt|\mumu,\SigmaSigma\right)dt \nnn
+ &\;=\; q\left(\xx,\mumu,\LambdaLambda,\SigmaSigma\right) \label{eq:qtrick}
+\end{eqnarray}
+
+% \begin{eqnarray} % this was computing it the long way:
+%  \E_{u_1u_2}[k_{u_1u_2}]
+%  & = & \int\int s^2 q(u_1,u_2,\Lambda,0) P(u_2|u_1)P(u_1) du_2du_1 \nnn
+%  & = & \int\int s^2 q(u_1,u_2,\Lambda,0) \N(u_2;\mu_2+c\sigma^{-2}_1(u_1-\mu_1),\sigma^2_2-c^2\sigma^{-2}_1)\N(u_1;\mu_1,\sigma^2_1)du_2du_1 \nnn
+%  & = & \int s^2 q(u_1,\mu_2+c\sigma^{-2}_1(u_1-\mu_1),\Lambda,\sigma^2_2-c^2\sigma^{-2}_1)\N(u_1;\mu_1,\sigma^2_1)du_1 \nnn
+%  & = & \int s^2 q(u_1\underbrace{(1-c\sigma^{-2}_1)}_{\alpha},\mu_2-c\sigma^{-2}_1\mu_1,\Lambda,\sigma^2_2-c^2\sigma^{-2}_1)\N(u_1;\mu_1,\sigma^2_1)du_1 \nnn
+%  & \propto & \int s^2 q(u_1,(\mu_2-c\sigma^{-2}_1\mu_1)\alpha\inv,\Lambda\alpha^{-2},(\sigma^2_2-c^2\sigma^{-2}_1)\alpha^{-2})\N(u_1;\mu_1,\sigma^2_1)du_1 \nnn
+%  & \propto & s^2 q(\mu_1,(\mu_2-c\sigma^{-2}_1\mu_1)\alpha\inv,\Lambda\alpha^{-2},(\sigma^2_2-c^2\sigma^{-2}_1)\alpha^{-2} + \sigma^2_1) \nnn
+%  & \propto & s^2 q(\mu_1\alpha,\mu_2-c\sigma^{-2}_1\mu_1,\Lambda,\sigma^2_2-c^2\sigma^{-2}_1 + \sigma^2_1\alpha^{2}) \nnn
+%  & \propto & s^2 q(\mu_1(1-c\sigma^{-2}_1),\mu_2-c\sigma^{-2}_1\mu_1,\Lambda,\sigma^2_2-c^2\sigma^{-2}_1 + \sigma^2_1(1-c\sigma^{-2}_1)^{2}) \nnn
+%  & \propto & s^2 q(\mu_1,\mu_2,\Lambda,\sigma^2_2 + \sigma^2_1 -2c) \nnn
+% \end{eqnarray}
+
+\end{document}

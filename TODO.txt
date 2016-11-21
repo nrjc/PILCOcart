@@ -1,0 +1,85 @@
+> minimize - derivative only fix - CARL
+
+> Devise solution for barrier function problems in training
+
+> Convert trigAug to gTrig and fillIn
+
+> Work out where to get the noise variances for the policy inputs from in the case of multiple dynamics models and/or 
+correctly provided values in plant - JOE. done (slightly hacky)
+
+> Get trainNIGP to work with multiple dynamics models - ANDREW
+
+> Change dynmodel.noise to something more appropriately named - ANDREW
+
+> Convert propagated, all controllers, gps, saturations, conCat, and g- functions to return vectorised derivatives
+..looks much tidier in the case of gSat, conlin and propagated...and requires only reshaping at the end of the other functions.
+@Joe: DONE
+
+> Check dSdp in propagated with a linear controller. Sorted (Joe)
+
+> Test scripts!!!
+
+> Derivative test functions:
+	- value - MARC. done
+ 	- propagate - JOE. done
+	- gp. MARC. done
+	- controllers - conT, done
+	- lossSat - MARC. done
+	- lossQuad - MARC. done
+	- gTrig
+	- gSat - CARL. done
+	- gSinSat - CARL. done
+
+> Documentation
+	- conGauss.tex	- done. MARC
+	- conGP.tex	- MARC
+        - squash.tex    - done. MARC
+
+
+
+LIST OF FILES TO BE INCLUDED IN RELEASE
+===========================
+
+DIR  FILE         STATUS     ACTION                                         WHO
+
+base
+  learnPolicy.m
+  trainDynModel.m
+  learnPolicy.m
+  applyController.m
+  propagate.m
+  propagated.m
+  value.m
+
+control
+  conlin.m
+  conlin.tex      MISSING  
+  consq.m
+  consq.tex
+  consq.pdf
+
+gp
+  gp0.m
+  gp0d.m
+  gp1.m
+  gp1d.m
+  gpi0.m
+  gpi0d.m
+  gpi1.m
+  gpi1d.m
+  gp.tex          MISSING
+
+unicycle
+  loss.m          OLD         remove dependence on trigaug and value
+
+cartPole
+  loss.m          OLD         remove dependence on trigaug and value
+
+cartDoublePendulum
+  loss.m          OLD         remove dependence on trigaug and value
+
+doublePendulum
+  loss.m          OLD         remove dependence on trigaug and value
+
+ 
+
