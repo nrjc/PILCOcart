@@ -1,1 +1,3 @@
-*.mat
+scenarios/cartDoublePendulum/test
+scenarios/cartDoublePendulum/finalTest
+
