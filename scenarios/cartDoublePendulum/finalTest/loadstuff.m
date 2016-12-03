@@ -4,9 +4,11 @@ try
   rd = '../../../';
   addpath([rd 'base'],[rd 'util'],[rd 'util/tprod'],[rd 'gp'],...
 [rd 'control'],[rd 'loss'],[rd 'direct'],[rd 'test']);
+  rd = '..';
+  addpath([rd])
 catch
 end
-load('CartDoubleStabilize3delay4l15_H30');
+load('CartDoubleStabilize5delay5l15_H30');
 
 
 
@@ -26,13 +28,13 @@ for i = 1:E          % plot the rollouts on top of predicted errorbars
   if exist('varUnits','var'); ylabel(varUnits{i}); end
   errorbar(0:length(stateM(dynoS(i),:))-1, stateM(dynoS(i),:), ...
                                  2*sqrt(squeeze(stateS(dynoS(i),dynoS(i),:))));  
-  %{
+  
   for ii=1:Nroll
     plot(0:size(lat{ii}.state(:,dyno(i)),1)-1, lat{ii}.state(:,dyno(i)), 'r');
   end
   plot(0:size(latent(j+J).state(:,dyno(i)),1)-1, ...
     latent(j+J).state(:,dyno(i)),'g');
-  %}
+  
   axis tight
 end
 
@@ -42,12 +44,12 @@ for i = 1:U
   hold on;
   errorbar(0:length(actionM(i,:))-1, actionM(i,:), ...
                                               2*sqrt(squeeze(actionS(i,i,:)))); 
-  %{
+  
   for ii=1:Nroll
     plot(0:length(lat2{ii}.action(:,i))-1, lat2{ii}.action(:,i), 'r');
   end
   plot(0:length(data(j+J).action(:,i))-1, data(j+J).action(:,i), 'g');
-  %}
+  
   axis tight
 end
 drawnow;
