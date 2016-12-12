@@ -1,17 +1,9 @@
 %Initialize Workspace variables
-clear all;
 close all;
-try
-  rd = '../../../';
-  addpath([rd 'base'],[rd 'util'],[rd 'util/tprod'],[rd 'gp'],...
-[rd 'control'],[rd 'loss'],[rd 'direct'],[rd 'test']);
-  rd = '..';
-  addpath([rd])
-catch
-end
+setdir;
 
 %Initialize Results Matrix
-result = NaN(5,6)
+result = NaN(5,6);
 for errornum = 1:5
 	for delaynum = 1:6
 		name = ['CartDoubleStabilize' int2str(errornum) ...
