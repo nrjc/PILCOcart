@@ -2,8 +2,10 @@ package sample;
 
 
 import java.io.ByteArrayInputStream;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,7 @@ import javafx.scene.image.ImageView;
 
 public class Controller {
 
+    private static long brightnessDelta = 40;
     // the FXML button
     @FXML
     private Button button;
@@ -54,6 +57,10 @@ public class Controller {
     private boolean cameraActive;
     // the logo to be loaded
     private Mat logo;
+    //Old Frame Store
+    private Mat oldFrame;
+    //Initial Time
+    private long initialTime;
 
     /**
      * Initialize method, automatically called by @{link FXMLLoader}
@@ -97,7 +104,7 @@ public class Controller {
             if (this.capture.isOpened())
             {
                 this.cameraActive = true;
-
+                this.initialTime = System.currentTimeMillis();
                 // grab a frame every 33 ms (30 frames/sec)
                 Runnable frameGrabber = new Runnable() {
 
@@ -167,6 +174,7 @@ public class Controller {
      */
     private Image grabFrame()
     {
+        long curTime = this.initialTime;
         // init everything
         Image imageToShow = null;
         Mat frame = new Mat();
@@ -207,6 +215,12 @@ public class Controller {
 
                     // convert the Mat object (OpenCV) to Image (JavaFX)
                     imageToShow = mat2Image(frame);
+                    long outputTime = detectSigBrightnessChange(this.oldFrame,frame);
+                    if (outputTime>0)
+                    {
+                        System.out.println(outputTime-curTime);
+                    }
+                    this.oldFrame = frame;
                 }
 
             }
@@ -218,6 +232,21 @@ public class Controller {
         }
 
         return imageToShow;
+    }
+
+    private long detectSigBrightnessChange(Mat oldFrame, Mat newFrame)
+    {
+        Mat result = new Mat();
+        if (oldFrame==null)
+        {
+            return -1;
+        }
+        Core.subtract(newFrame,oldFrame,result);
+        if (Math.abs(Core.mean(result).val[0])>this.brightnessDelta)
+        {
+            return System.currentTimeMillis();
+        }
+        return -1;
     }
 
     /**
