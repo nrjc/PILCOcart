@@ -2,3 +2,4 @@ scenarios/cartDoublePendulum/test
 scenarios/cartDoublePendulum/finalTest/result*
 opencv-2.4.13/build
 pilcovideo/out
+pilcovideo/.idea
