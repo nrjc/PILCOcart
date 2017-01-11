@@ -31,6 +31,8 @@ public class Controller {
     @FXML
     private Button button;
     @FXML
+    private Button brighten;
+    @FXML
     private CheckBox grayscale;
     @FXML
     private ImageView histogram;

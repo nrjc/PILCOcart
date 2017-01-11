@@ -1,0 +1,380 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format pdf5
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement H
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4paper
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\topmargin 2cm
+\rightmargin 2cm
+\bottommargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation 0bp
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Technical Progress Report
+\end_layout
+
+\begin_layout Author
+Nicholas Capel (nrjc2)
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+The inverted double pendulum problem is a control problem.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Diagram of inverted double pendulum
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename pendulum.png
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The state of the system is described by x.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x=[\dot{x_{t}},x_{t},\dot{\theta_{1(t)}},\theta_{1(t)},\dot{\theta_{2(t)}},\theta_{2(t)}]^{T}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The objective of the control problem is to discover a controller to minimize
+ a cost function over an infinite time horizon.
+ 
+\end_layout
+
+\begin_layout AlertBlock
+\begin_inset Formula $x\mapsto\pi(x)=u$
+\end_inset
+
+
+\end_layout
+
+\begin_layout AlertBlock
+\begin_inset Formula $min(\sum_{t=0}^{T}\mathbb{E}[c(x_{t})])$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The stabilization process can be roughly split into two parts:
+\end_layout
+
+\begin_layout Enumerate
+Swing up
+\end_layout
+
+\begin_layout Enumerate
+Stabilize
+\end_layout
+
+\begin_layout Standard
+Normally, in such problems, the classical approach is to write down the
+ Newtonian mechanics and make a first order approximation about the equilibrium
+ point.
+ However, this model-based approach breaks down after a certain point, and
+ no one can exactly identify this point.
+ The PILCO approach is to use a data-based approach to learn a model for
+ the entire state space.
+ 
+\end_layout
+
+\begin_layout Standard
+In our case, the apparatus is set up as such:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Diagram of system setup
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename experimentalsetup.svg
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Progress
+\end_layout
+
+\begin_layout Standard
+Talk about how I did some experiments in Matlab.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+GP predictions
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename sampleRun2.eps
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+GP predictions with rollouts
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename sampleRun.eps
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Talk about the algorithm of my own invention.
+\end_layout
+
+\begin_layout Standard
+However, it is impossible for me to manually check each and every run to
+ determine whether it is stable or unstable.
+ Hence, I created a script to automatically score a run: 1.
+ When var(Tmax)>var(Tmax-1)>var(TMax-2) for the Gaussian Process state of
+ the outer angle, award one point for instability.
+ This is because an increasing variance on the GP towards the end of a run
+ indicates that the state is not tightly bound.
+\end_layout
+
+\begin_layout Standard
+2.
+ When more than 3/10 runs exceed two standard deviations of the predicted
+ GP, award one point for instability.
+ If the number is > 7/10 runs, award two points for instability.
+ This indicates that the GP does not accurately describe the dynamics of
+ the real system.
+ 
+\end_layout
+
+\begin_layout Standard
+Talk about my new camera experiments.
+\end_layout
+
+\begin_layout Standard
+Wrote a program in Java.
+ To be done in a dark room.
+ Screen is brightened.
+ Computer starts timing when the command is given to brighten screen.
+ Computer stops timing when a change in camera brightness is detected.
+ The delay can be estimated by the time taken for it to go through the system.
+ 
+\end_layout
+
+\begin_layout Section
+Results Obtained
+\end_layout
+
+\begin_layout Standard
+Show my results for the Matlab experiments.
+ 
+\end_layout
+
+\begin_layout Standard
+Talk about the delays found.
+\end_layout
+
+\begin_layout Section
+Future Plans
+\end_layout
+
+\begin_layout Standard
+Analytical handle on control system
+\end_layout
+
+\begin_layout Standard
+Camera experiments
+\end_layout
+
+\begin_layout Standard
+Moving to real apparatus
+\end_layout
+
+\begin_layout Standard
+Rewriting the OpenCV
+\end_layout
+
+\end_body
+\end_document
