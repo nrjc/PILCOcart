@@ -78,6 +78,16 @@
 
 \begin_layout Title
 Technical Progress Report
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+add control of inverted DP
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Author
@@ -100,10 +110,6 @@ sideways false
 status collapsed
 
 \begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
@@ -118,7 +124,7 @@ Diagram of inverted double pendulum
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename pendulum.png
+	filename diag/pendulum.png
 	width 50text%
 
 \end_inset
@@ -216,7 +222,7 @@ Diagram of system setup
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename experimentalsetup.svg
+	filename diag/experimentalsetup.svg
 	width 50text%
 
 \end_inset
@@ -240,7 +246,6 @@ Talk about how I did some experiments in Matlab.
 
 \begin_layout Standard
 \begin_inset Float figure
-placement H
 wide false
 sideways false
 status collapsed
@@ -258,9 +263,28 @@ GP predictions
 \end_layout
 
 \begin_layout Plain Layout
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Base
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename sampleRun2.eps
+	filename diag/sampleRun2.eps
 	width 50text%
 
 \end_inset
@@ -275,13 +299,13 @@ GP predictions
 placement H
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-GP predictions with rollouts
+With rollouts
 \end_layout
 
 \end_inset
@@ -292,8 +316,13 @@ GP predictions with rollouts
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename sampleRun.eps
+	filename diag/sampleRun.eps
 	width 50text%
+
+\end_inset
+
+
+\end_layout
 
 \end_inset
 
@@ -353,6 +382,55 @@ Show my results for the Matlab experiments.
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Add more recent results.
+ Plot contour map
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Stability
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename diag/stability.png
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Talk about the delays found.
 \end_layout
 
@@ -365,7 +443,7 @@ Analytical handle on control system
 \end_layout
 
 \begin_layout Standard
-Camera experiments
+More camera experiments
 \end_layout
 
 \begin_layout Standard
