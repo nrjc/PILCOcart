@@ -19,7 +19,6 @@
         <ImageView fx:id="histogram" />
         <Text text="Controls" />
         <CheckBox fx:id="grayscale" text="Show in gray scale" />
-        <CheckBox fx:id="logoCheckBox" text="Show logo" onAction="#loadLogo" />
     </VBox>
 </right>
 <bottom>
@@ -28,7 +27,7 @@
             <Insets top="25" right="25" bottom="25" left="25"/>
         </padding>
         <Button fx:id="button" alignment="center" text="Start camera" onAction="#startCamera" />
-        <Button fx:id="button" alignment="center" text="Brighten screen" onAction="#bright" />
+        <Button fx:id="brighten" alignment="center" text="Brighten screen" onAction="#bright" />
     </HBox>
 </bottom>
 </BorderPane>

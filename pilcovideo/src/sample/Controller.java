@@ -2,10 +2,8 @@ package sample;
 
 
 import java.io.ByteArrayInputStream;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +15,6 @@ import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -31,32 +28,23 @@ import javafx.scene.image.ImageView;
 
 
 public class Controller {
-
-    private static long brightnessDelta = 40;
-    // the FXML button
     @FXML
     private Button button;
-    // the FXML grayscale checkbox
     @FXML
     private CheckBox grayscale;
-    // the FXML logo checkbox
-    @FXML
-    private CheckBox logoCheckBox;
-    // the FXML grayscale checkbox
     @FXML
     private ImageView histogram;
-    // the FXML area for showing the current frame
     @FXML
     private ImageView currentFrame;
 
+    // Brightness change that is required for a register
+    private static long brightnessDelta = 10;
     // a timer for acquiring the video stream
     private ScheduledExecutorService timer;
     // the OpenCV object that realizes the video capture
     private VideoCapture capture;
     // a flag to change the button behavior
     private boolean cameraActive;
-    // the logo to be loaded
-    private Mat logo;
     //Old Frame Store
     private Mat oldFrame;
     //Initial Time
@@ -75,13 +63,15 @@ public class Controller {
     protected void bright()
     {
         try {
-            startCamera();
-            Process process = Runtime.getRuntime().exec("brightness 1");
 
-        } catch (Exception ex) {
+            Process process1 = Runtime.getRuntime().exec("brightness 0");
+            this.initialTime = System.currentTimeMillis();
+            Thread.sleep(5000);
+            process1 = Runtime.getRuntime().exec("brightness 1");
+        }
+        catch (Exception ex) {
             ex.printStackTrace();
         }
-
     }
 
     /**
@@ -90,24 +80,17 @@ public class Controller {
     @FXML
     protected void startCamera()
     {
-        // set a fixed width for the frame
         this.currentFrame.setFitWidth(600);
-        // preserve image ratio
         this.currentFrame.setPreserveRatio(true);
 
         if (!this.cameraActive)
         {
-            // start the video capture
             this.capture.open(0);
 
-            // is the video stream available?
             if (this.capture.isOpened())
             {
                 this.cameraActive = true;
-                this.initialTime = System.currentTimeMillis();
-                // grab a frame every 33 ms (30 frames/sec)
                 Runnable frameGrabber = new Runnable() {
-
                     @Override
                     public void run()
                     {
@@ -117,25 +100,20 @@ public class Controller {
                 };
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
+
                 this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 
-                // update the button content
                 this.button.setText("Stop Camera");
             }
             else
             {
-                // log the error
                 System.err.println("Impossible to open the camera connection...");
             }
         }
         else
         {
-            // the camera is not active at this point
             this.cameraActive = false;
-            // update again the button content
             this.button.setText("Start Camera");
-
-            // stop the timer
             try
             {
                 this.timer.shutdown();
@@ -143,27 +121,10 @@ public class Controller {
             }
             catch (InterruptedException e)
             {
-                // log the exception
                 System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
             }
-
-            // release the camera
             this.capture.release();
-            // clean the frame
             this.currentFrame.setImage(null);
-        }
-    }
-
-    /**
-     * The action triggered by selecting/deselecting the logo checkbox
-     */
-    @FXML
-    protected void loadLogo()
-    {
-        if (logoCheckBox.isSelected())
-        {
-            // read the logo only when the checkbox has been selected
-            this.logo = Imgcodecs.imread("resources/Poli.png");
         }
     }
 
@@ -175,45 +136,23 @@ public class Controller {
     private Image grabFrame()
     {
         long curTime = this.initialTime;
-        // init everything
         Image imageToShow = null;
         Mat frame = new Mat();
 
-        // check if the capture is open
         if (this.capture.isOpened())
         {
             try
             {
-                // read the current frame
                 this.capture.read(frame);
 
-                // if the frame is not empty, process it
                 if (!frame.empty())
                 {
-                    // add a logo...
-                    if (logoCheckBox.isSelected() && this.logo != null)
-                    {
-                        Rect roi = new Rect(frame.cols() - logo.cols(), frame.rows() - logo.rows(), logo.cols(),
-                                logo.rows());
-                        Mat imageROI = frame.submat(roi);
-                        // add the logo: method #1
-                        Core.addWeighted(imageROI, 1.0, logo, 0.8, 0.0, imageROI);
-
-                        // add the logo: method #2
-                        // logo.copyTo(imageROI, logo);
-                    }
-
-                    // if the grayscale checkbox is selected, convert the image
-                    // (frame + logo) accordingly
                     if (grayscale.isSelected())
                     {
                         Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
                     }
 
-                    // show the histogram
                     this.showHistogram(frame, grayscale.isSelected());
-
-                    // convert the Mat object (OpenCV) to Image (JavaFX)
                     imageToShow = mat2Image(frame);
                     long outputTime = detectSigBrightnessChange(this.oldFrame,frame);
                     if (outputTime>0)
