@@ -67,8 +67,8 @@ public class Controller {
         try {
 
             Process process1 = Runtime.getRuntime().exec("brightness 0");
-            this.initialTime = System.currentTimeMillis();
             Thread.sleep(5000);
+            this.initialTime = System.currentTimeMillis();
             process1 = Runtime.getRuntime().exec("brightness 1");
         }
         catch (Exception ex) {
