@@ -40,7 +40,7 @@ public class Controller {
     private ImageView currentFrame;
 
     // Brightness change that is required for a register
-    private static long brightnessDelta = 10;
+    private static long brightnessDelta = 5;
     // a timer for acquiring the video stream
     private ScheduledExecutorService timer;
     // the OpenCV object that realizes the video capture

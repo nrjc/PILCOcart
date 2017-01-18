@@ -99,7 +99,7 @@ hrulefill
 
 
 \backslash
-textbf{Technical Progress Report} 
+textbf{Technical Milestone Report} 
 \backslash
 
 \backslash
@@ -185,11 +185,12 @@ The inverted double pendulum problem is a control problem.
 \end_layout
 
 \begin_layout Standard
+ope
 \begin_inset Float figure
 placement H
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -208,7 +209,7 @@ Diagram of setups
 placement H
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -240,7 +241,7 @@ Problem setup
 placement H
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -538,7 +539,7 @@ reference "pilcooverview"
 
 \begin_layout Standard
 Stabilization of the inverted double pendulum has been attempted before,
- without success
+ without success 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "Kukla"
@@ -561,9 +562,15 @@ Computer Simulations: Stabilization About Equilibrium Point
 \end_layout
 
 \begin_layout Standard
-The first objective is to discover if the problem is tractable.
- How much delay and noise can be added to the system before the PILCO algorithm
- fails?
+The first objective is to discover how delay and noise affect the tractability
+ of the inverted double pendulum problem.
+ In this series of experiments, a linear policy model was chosen for the
+ control, and the initial state of the system is set such that 
+\begin_inset Formula $\theta_{1}\approx0,\,\theta_{2}\approx0$
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -579,13 +586,7 @@ analysed
 \end_layout
 
 \begin_layout Standard
-In this series of experiments, a linear policy model was chosen for the
- control, and the initial state of the system is set such that 
-\begin_inset Formula $\theta_{1}\approx0,\,\theta_{2}\approx0$
-\end_inset
-
-.
- In previous experiments
+In previous experiments 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "Kukla"
@@ -618,15 +619,15 @@ key "pendulum"
 \end_layout
 
 \begin_layout Standard
-The Figure below represents a typical result of the attempted PILCO stabilizatio
-n
+The Figure below represents a typical result of an attempted PILCO stabilization
+:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -727,6 +728,26 @@ name "gprollout"
 \end_layout
 
 \begin_layout Standard
+Figures 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "gpbase"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "gprollout"
+
+\end_inset
+
+ show how the value of a given state variable is predicted to vary with
+ time.
+ 
+\end_layout
+
+\begin_layout Standard
 The blue mean line (Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -736,7 +757,12 @@ reference "gpbase"
 
 ) represents the predicted trajectory of the inverted double pendulum given
  the controller.
- The blue bars represent the uncertainty or variance about this trajectory.
+ 
+\end_layout
+
+\begin_layout Standard
+The blue bars represent the 95% confidence interval of the trajectory as
+ predicted by the model.
  
 \end_layout
 
@@ -785,10 +811,12 @@ Control error: The framework learns the correct dynamics model, but cannot
 
 \begin_layout Standard
 If the control problem is tractable, two things should be observed.
- First, as the number of steps increases, the predicted trajectory should
- be centered on the targeted state, and the variance of the trajectory should
- be tightly bound.
- This demonstrates that there is no control error.
+ Firstly, as the number of steps increases, the predicted trajectory should
+ be centered on the targeted state (0, in all cases).
+ Furthermore, the 95% confidence interval should shrink as time increases.
+ This demonstrates that the model predicts that it can keep the state of
+ the double pendulum bound.
+ Hence, there is no control error.
  
 \end_layout
 
@@ -1077,7 +1105,7 @@ Thus, an average stability rating can be computed for all 5 runs.
 placement H
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Caption Standard
@@ -1161,13 +1189,48 @@ t_{delay}(max)=(307\pm60)ms
 Originally, it was hypothesized that the delay is on the order of 30ms.
  However, the delays obtained in this experiment were a full order of magnitude
  higher.
- However, the delay found in this experiment is an upper bound on the delay
- and not the actual delay.
+ This is most likely because the Java code that implements the experiment
+ invokes a very expensive system call which can be removed.
  Hence, the actual delay will probably be far lower.
 \end_layout
 
 \begin_layout Section
 Future Plans
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Project Timeline
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename diag/gantt.pdf
+	width 100text%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -1188,11 +1251,13 @@ Further Camera Experiments
 \end_layout
 
 \begin_layout Standard
-More experiments will be conducted with the camera system to obtain both
- a lower bound as well as upper bound of the delay.
- Additionally, the experiment will be redone in C++ / C (which the actual
- system will be written in), to increase the speed of processing and to
- reduce the size of the delay.
+The Java code implementing the camera experiments will be rewritten to remove
+ the expensive system call.
+ More experiments will be conducted with the camera system to obtain a more
+ accurate delay.
+ If the delay still remains extremely high, the experiment will be redone
+ in C++ / C (which the actual system will be written in), to increase the
+ speed of processing and to reduce the size of the delay.
  
 \end_layout
 
