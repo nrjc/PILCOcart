@@ -18,7 +18,7 @@ for i = 1:E          % plot the rollouts on top of predicted errorbars
     plot(0:size(lat{ii}.state(:,dyno(i)),1)-1, lat{ii}.state(:,dyno(i)), 'r');
   end
   plot(0:size(latent(j+J).state(:,dyno(i)),1)-1, ...
-    latent(j+J).state(:,dyno(i)),'g');
+    latent(j+J).state(:,dyno(i)),'g','LineWidth',3);
                                  
   
   axis tight
@@ -34,7 +34,7 @@ for i = 1:U
   for ii=1:Nroll
     plot(0:length(lat2{ii}.action(:,i))-1, lat2{ii}.action(:,i), 'r');
   end
-  plot(0:length(data(j+J).action(:,i))-1, data(j+J).action(:,i), 'g');
+  plot(0:length(data(j+J).action(:,i))-1, data(j+J).action(:,i), 'g','LineWidth',3);
   
   axis tight
   xlabel('u'); 

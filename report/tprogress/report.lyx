@@ -642,6 +642,7 @@ GP predictions
 \end_layout
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Float figure
 placement H
 wide false
@@ -664,7 +665,7 @@ Base
 \align center
 \begin_inset Graphics
 	filename diag/sampleRun2.eps
-	width 50text%
+	width 70text%
 
 \end_inset
 
@@ -681,6 +682,10 @@ name "gpbase"
 \end_inset
 
 
+\end_layout
+
+\begin_layout Plain Layout
+\align center
 \begin_inset Float figure
 placement H
 wide false
@@ -703,7 +708,7 @@ With rollouts
 \align center
 \begin_inset Graphics
 	filename diag/sampleRun.eps
-	width 50text%
+	width 70text%
 
 \end_inset
 
@@ -823,7 +828,15 @@ If the control problem is tractable, two things should be observed.
 \begin_layout Standard
 Secondly, the trajectories of the simulated and actual rollouts should be
  well described by the PILCO framework.
- 
+ The trajectories of the rollouts should be within the 95% confidence interval,
+ as it is in Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "gprollout"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard

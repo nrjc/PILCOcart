@@ -97,7 +97,7 @@ public class Controller {
                     public void run()
                     {
                         Image imageToShow = grabFrame();
-                        currentFrame.setImage(imageToShow);
+                        //currentFrame.setImage(imageToShow);
                     }
                 };
 
