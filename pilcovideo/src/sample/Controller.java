@@ -154,7 +154,7 @@ public class Controller {
                         Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
                     }
 
-                    this.showHistogram(frame, grayscale.isSelected());
+                    //this.showHistogram(frame, grayscale.isSelected());
                     imageToShow = mat2Image(frame);
                     long outputTime = detectSigBrightnessChange(this.oldFrame,frame);
                     if (outputTime>0)
