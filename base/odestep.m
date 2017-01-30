@@ -29,17 +29,23 @@ function x1 = odestep(x0, f, plant)
 OPTIONS = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);         % accuracy of ode45
 persistent u;                                % previous control action function 
 dt = plant.dt; eval(['ctrltype = ', func2str(plant.ctrltype), ';']);   % scope!
-if isempty(u), u = @(t)ctrltype(t, 0*f, 0*f); end;
+ulength = floor(plant.delay/dt) + 1;
+if (isempty(u))
+    for i=1:ulength
+        u{i} = @(t)ctrltype(t, 0*f, 0*f); %TODO: Change. 
+    end
+end
 
 if isfield(plant, 'delay')
-  [T y] = ode45(plant.ode, linspace(dt-plant.delay,dt,3), x0, OPTIONS, u);
-  udt = u(dt);
-  u = @(t)ctrltype(t, f, udt);  
-  [T y] = ode45(plant.ode, linspace(0,dt-plant.delay,3), y(3,:)', OPTIONS, u);     
+  [T y] = ode45(plant.ode, linspace(dt-plant.delay,dt,3), x0, OPTIONS, u{1});
+  udt = u{1}(dt);
+  u = u(1:ulength-1);
+  u{ulength} = @(t)ctrltype(t, f, udt);  
+  [T y] = ode45(plant.ode, linspace(0,dt-plant.delay,3), y(3,:)', OPTIONS, u{1});     
 else
-  udt = u(dt);
-  u = @(t)ctrltype(t, f, udt);  
-  [T y] = ode45(plant.ode, [0 dt/2 dt], x0, OPTIONS, u);        % solve the ode
+  udt = u{1}(dt);
+  u{1} = @(t)ctrltype(t, f, udt);  
+  [T y] = ode45(plant.ode, [0 dt/2 dt], x0, OPTIONS, u{1});        % solve the ode
 end    
 x1 = y(3,:)';                                       % extract the desired state 
 
