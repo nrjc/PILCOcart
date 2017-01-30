@@ -17,8 +17,8 @@
 % Copyright (C) 2008-2015 by Marc Deisenroth and Carl Edward Rasmussen,
 % Jonas Umlauft, Rowan McAllister 2015-07-01
 clear all;
-errormag = [0.25 0.5 1 2 4]
-delay = [0.005 0.01 0.02 0.03 0.04 0.049];
+errormag = [1]
+delay = [0.06 0.10 0.14 0.18 0.22];
 for errornum = 1:5
 	for delaynum = 1:6
 	    close all;
