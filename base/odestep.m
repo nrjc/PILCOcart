@@ -39,9 +39,7 @@ end
 if isfield(plant, 'delay')
   [T y] = ode45(plant.ode, linspace(dt-plant.delay,dt,3), x0, OPTIONS, u{1});
   udt = u{1}(dt);
-  if (ulength>1)
-    u = u(2:ulength);
-  end
+  u = u(1:ulength-1);
   u{ulength} = @(t)ctrltype(t, f, udt);  
   [T y] = ode45(plant.ode, linspace(0,dt-plant.delay,3), y(3,:)', OPTIONS, u{1});     
 else
