@@ -20,7 +20,7 @@ clear all;
 errormag = [1];
 delay = [0.049 0.5 0.051];
 for errornum = 1
-	for delaynum = 1:2
+	for delaynum = 1:3
 	    close all;
 	    clc
 	    dbstop if error
