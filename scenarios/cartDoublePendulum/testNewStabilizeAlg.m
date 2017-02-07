@@ -18,9 +18,9 @@
 % Jonas Umlauft, Rowan McAllister 2015-07-01
 clear all;
 errormag = [1];
-delay = [0.04999 0.5 0.05001];
+delay = [0.04999 0.05001];
 for errornum = 1
-	for delaynum = 1:3
+	for delaynum = 1:2
 	    close all;
 	    clc
 	    dbstop if error

@@ -32,12 +32,12 @@ dt = plant.dt; eval(['ctrltype = ', func2str(plant.ctrltype), ';']);   % scope!
 ulength = floor(plant.delay/dt) + 1;
 if (isempty(u))
     for i=1:ulength
-        u{i} = @(t)ctrltype(t, 0*f, 0*f); %TODO: Change. 
+        u{i} = @(t)ctrltype(t, 0*f, 0*f); 
     end
 end
 
 if isfield(plant, 'delay')
-  realDelay = rem(plant.delay,dt);
+  realDelay = rem(plant.delay,dt); %TODO: This algorithm fails when realDelay = 0
   [T y] = ode45(plant.ode, linspace(dt-realDelay,dt,3), x0, OPTIONS, u{1});
   udt = u{1}(dt);
   u = u(2:ulength);
