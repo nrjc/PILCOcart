@@ -37,11 +37,12 @@ if (isempty(u))
 end
 
 if isfield(plant, 'delay')
-  [T y] = ode45(plant.ode, linspace(dt-plant.delay,dt,3), x0, OPTIONS, u{1});
+  realDelay = rem(plant.delay/dt);
+  [T y] = ode45(plant.ode, linspace(dt-realDelay,dt,3), x0, OPTIONS, u{1});
   udt = u{1}(dt);
   u = u(2:ulength);
   u{ulength} = @(t)ctrltype(t, f, udt);  
-  [T y] = ode45(plant.ode, linspace(0,dt-plant.delay,3), y(3,:)', OPTIONS, u{1});     
+  [T y] = ode45(plant.ode, linspace(0,dt-realDelay,3), y(3,:)', OPTIONS, u{1});     
 else
   udt = u{1}(dt);
   u{1} = @(t)ctrltype(t, f, udt);  
