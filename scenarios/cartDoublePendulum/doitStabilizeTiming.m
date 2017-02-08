@@ -18,13 +18,13 @@
 % Jonas Umlauft, Rowan McAllister 2015-07-01
 clear all;
 errormag = [1];
-delay = [0.06 0.11 0.14 0.18 0.22];
+delay = [0.051 0.053 0.055 0.057 0.060];
 for errornum = 1
-	for delaynum = 2:5
+	for delaynum = 1:5
 	    close all;
 	    clc
 	    dbstop if error
-	    basename = ['CartDoubleStabilize' int2str(errornum) 'delay' int2str(delaynum) 'l'];
+	    basename = ['CartDoubleStabilizeTiming' int2str(errornum) 'delay' int2str(delaynum) 'l'];
 
 	    varNames = {'dx','dtheta1','dtheta2','x','theta1','theta2'};
 	    varUnits = {'m/s','rad/s','rad/s','m','rad','rad'};
