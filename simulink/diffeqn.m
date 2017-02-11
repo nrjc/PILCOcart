@@ -1,4 +1,3 @@
-%Check my equations!
 g=9.82;
 lq = 0.6;
 lp = 0.6;

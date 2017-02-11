@@ -1,5 +1,5 @@
 clear all;
 setdir;
-load CartDoubleSwingup15_H30.mat;
+load CartDoubleSwingup40_H60.mat;
 plotall;
-animate(latent(16), data(16), dt, cost);
+animate(latent(41), data(41), dt, cost);
