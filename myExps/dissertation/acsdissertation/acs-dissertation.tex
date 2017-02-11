@@ -1,0 +1,66 @@
+%% 
+%% ACS project dissertation template. 
+%% 
+%% Currently designed for printing two-sided, but if you prefer to 
+%% print single-sided just remove ",twoside,openright" from the 
+%% \documentclass[] line below. 
+%%
+%%
+%%   SMH, May 2010. 
+
+
+\documentclass[a4paper,12pt,twoside,openright]{report}
+
+
+%%
+%% EDIT THE BELOW TO CUSTOMIZE
+%%
+
+\def\authorname{Martin M.\ Kukla\xspace}
+\def\authorcollege{Homerton College\xspace}
+\def\authoremail{mmk48@cl.cam.ac.uk}
+\def\dissertationtitle{Learning to control double inverted pendulum with vision feedback.}
+\def\wordcount{XXX}
+
+
+\usepackage{epsfig,graphicx,parskip,setspace,tabularx,xspace} 
+
+%% START OF DOCUMENT
+\begin{document}
+
+
+%% FRONTMATTER (TITLE PAGE, DECLARATION, ABSTRACT, ETC) 
+\pagestyle{empty}
+\singlespacing
+\input{titlepage}
+\onehalfspacing
+\input{declaration}
+\singlespacing
+\input{abstract}
+
+\pagenumbering{roman}
+\setcounter{page}{0}
+\pagestyle{plain}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\onehalfspacing
+
+%% START OF MAIN TEXT 
+
+\chapter{Introduction}
+\pagenumbering{arabic} 
+\setcounter{page}{1} 
+
+This is the introduction where you should introduce your work.  In
+
+\include{pilco}
+
+\appendix
+\singlespacing
+
+\bibliographystyle{unsrt} 
+%\bibliography{dissertation} 
+
+\end{document}

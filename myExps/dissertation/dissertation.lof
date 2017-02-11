@@ -1,0 +1,36 @@
+\contentsline {figure}{\numberline {1}{\ignorespaces The initial state: the pendulum is hanging downwards.}}{7}{figure.1}
+\contentsline {figure}{\numberline {2}{\ignorespaces The pendulum in the middle of the swing up action.}}{7}{figure.2}
+\contentsline {figure}{\numberline {3}{\ignorespaces The pendulum is in the upright position.}}{7}{figure.3}
+\contentsline {figure}{\numberline {4}{\ignorespaces GP distribution over the functions if no training points are available.}}{11}{figure.4}
+\contentsline {figure}{\numberline {5}{\ignorespaces GP distribution over the functions if one training point is available.}}{11}{figure.5}
+\contentsline {figure}{\numberline {6}{\ignorespaces GP distribution over the functions if two training points are available.}}{11}{figure.6}
+\contentsline {figure}{\numberline {7}{\ignorespaces GP distribution over the functions if three training points are available.}}{11}{figure.7}
+\contentsline {figure}{\numberline {8}{\ignorespaces The predictive distribution of the full GP model expressed by 9 training points.}}{12}{figure.8}
+\contentsline {figure}{\numberline {9}{\ignorespaces The similar predictive distribution of another GP model expressed by only 3 pseudo points.}}{12}{figure.9}
+\contentsline {figure}{\numberline {10}{\ignorespaces The Direct Method for Gaussian Processes Time-Series model in which: $y_{t}$ is a noisy observation of the state at time $t$; $x_{t}$ is a distribution over the latent state at time $t$; \relax $\@@underline {\hbox {\relax $\@@underline {\hbox {x}}\mathsurround \z@ $\relax }}\mathsurround \z@ $\relax \ and\ \relax $\@@underline {\hbox {\relax $\@@underline {\hbox {f}}\mathsurround \z@ $\relax }}\mathsurround \z@ $\relax \ are the pseudo inputs and the pseudo targets of the parametric GP model; $\epsilon _{pn}$ and $\epsilon _{on}$ stand for process and observation noise respectively.}}{13}{figure.10}
+\contentsline {figure}{\numberline {11}{\ignorespaces The Direct Method for Gaussian Processes Time-Series model with two parametric GP models.}}{14}{figure.11}
+\contentsline {figure}{\numberline {12}{\ignorespaces The uncertain state $x_{t}$ with standard deviation equalled to $0.5$. There is a linear relationship between the state $x_{t}$ and the applied action $u_{t}$ chosen by the closed-loop controller.}}{16}{figure.12}
+\contentsline {figure}{\numberline {13}{\ignorespaces The uncertain state $x_{t+1}$ with standard deviation equalled to $0.2$}}{16}{figure.13}
+\contentsline {figure}{\numberline {14}{\ignorespaces The components involved in the rollout of the physical pendulum. }}{18}{figure.14}
+\contentsline {figure}{\numberline {15}{\ignorespaces The example frame with the single pendulum.}}{19}{figure.15}
+\contentsline {figure}{\numberline {16}{\ignorespaces The example frame with the double pendulum.}}{19}{figure.16}
+\contentsline {figure}{\numberline {17}{\ignorespaces The pendulum with the marked variables of the state.}}{19}{figure.17}
+\contentsline {figure}{\numberline {18}{\ignorespaces The frame $f_{t}$ and the delayed actions $a_{t}$ on the time axis. It presents the situation when the time delay is lower than the time between frames i.e. $33$ ms.}}{20}{figure.18}
+\contentsline {figure}{\numberline {19}{\ignorespaces The predicted loss value of the trained controller for the single pendulum with the second order Markov representation. The green line corresponds to the rollout .}}{22}{figure.19}
+\contentsline {figure}{\numberline {20}{\ignorespaces The predicted trajectory of $x$. The blue error bars correpond to the variance multiplied by $2$.}}{22}{figure.20}
+\contentsline {figure}{\numberline {21}{\ignorespaces The predicted trajectory of $\theta $.}}{22}{figure.21}
+\contentsline {figure}{\numberline {22}{\ignorespaces The predicted action applied to the pendulum.}}{22}{figure.22}
+\contentsline {figure}{\numberline {23}{\ignorespaces The predicted loss value of the trained controller for the single pendulum with the thrid order Markov representation. The green line corresponds to the rollout .}}{24}{figure.23}
+\contentsline {figure}{\numberline {24}{\ignorespaces The predicted trajectory of $x$.}}{24}{figure.24}
+\contentsline {figure}{\numberline {25}{\ignorespaces The predicted trajectory of $\theta $.}}{24}{figure.25}
+\contentsline {figure}{\numberline {26}{\ignorespaces The predicted action applied to the pendulum.}}{24}{figure.26}
+\contentsline {figure}{\numberline {27}{\ignorespaces The comparison of the predicted loss: the blue error bars represent the policy trained over the time horizon $T=40$, whereas the red error bars is the policy trained over $T=30$.}}{25}{figure.27}
+\contentsline {figure}{\numberline {28}{\ignorespaces The mean output contributions of the individual units of the RBF network along the predicted trajectory of the trained controller. The absolute values of those contributions are shown in the logarithm space (i.e. color value of $8$ corresponds to $29810$).}}{26}{figure.28}
+\contentsline {figure}{\numberline {29}{\ignorespaces The contribution for the predicted tracjectory of the unit $5$\ (blue line) and unit $28$\ (red line) of the RBF network. The contribution from both units cancel out when added\ (yellow line).}}{26}{figure.29}
+\contentsline {figure}{\numberline {30}{\ignorespaces The comparison of loss of the predicted trajectory from time step $t=18$. Blue error bars correspond to the main policy, while the green are the subtask's policy.}}{27}{figure.30}
+\contentsline {figure}{\numberline {31}{\ignorespaces The comparison of the predicted trajectory according to the main policy\ (blue) and subtask's one\ (green).}}{27}{figure.31}
+\contentsline {figure}{\numberline {32}{\ignorespaces The predicted loss value of the trained controller for the double pendulum with the thrid order Markov representation. The green line corresponds to the rollout .}}{29}{figure.32}
+\contentsline {figure}{\numberline {33}{\ignorespaces The predicted trajectory of $x$.}}{29}{figure.33}
+\contentsline {figure}{\numberline {34}{\ignorespaces The predicted trajectory of $\theta _{1}$.}}{29}{figure.34}
+\contentsline {figure}{\numberline {35}{\ignorespaces The predicted trajectory of $\theta _{2}$.}}{29}{figure.35}
+\contentsline {figure}{\numberline {36}{\ignorespaces The predicted action applied to the pendulum.}}{29}{figure.36}

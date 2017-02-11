@@ -1,0 +1,86 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\citation{deisenroth2011pilco}
+\citation{candela2003propagation}
+\citation{deisenroth2011pilco}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Probabilistic inference for control}{9}{section.2}}
+\newlabel{s:pilco}{{2}{9}{Probabilistic inference for control}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Dynamics model}{9}{subsection.2.1}}
+\newlabel{s:pilco:dyn}{{2.1}{9}{Dynamics model}{subsection.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Gaussian Processes for Regression}{10}{subsubsection.2.1.1}}
+\newlabel{s:pilco:gpr}{{2.1.1}{10}{Gaussian Processes for Regression}{subsubsection.2.1.1}{}}
+\newlabel{eq:gpr:preddistr}{{3}{10}{Gaussian Processes for Regression}{equation.2.3}{}}
+\newlabel{eq:gpr:covse}{{4}{10}{Gaussian Processes for Regression}{equation.2.4}{}}
+\citation{rasmussen2006gaussian}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces GP distribution over the functions if no training points are available.}}{11}{figure.4}}
+\newlabel{fig:gpr:gp0}{{4}{11}{GP distribution over the functions if no training points are available}{figure.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces GP distribution over the functions if one training point is available.}}{11}{figure.5}}
+\newlabel{fig:gpr:gp1}{{5}{11}{GP distribution over the functions if one training point is available}{figure.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces GP distribution over the functions if two training points are available.}}{11}{figure.6}}
+\newlabel{fig:gpr:gp2}{{6}{11}{GP distribution over the functions if two training points are available}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces GP distribution over the functions if three training points are available.}}{11}{figure.7}}
+\newlabel{fig:gpr:gp3}{{7}{11}{GP distribution over the functions if three training points are available}{figure.7}{}}
+\citation{snelson2006sparse}
+\citation{snelson2006sparse}
+\citation{mch-thesis}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Sparse Gaussian Processes}{12}{subsubsection.2.1.2}}
+\newlabel{s:pilco:sgpr}{{2.1.2}{12}{Sparse Gaussian Processes}{subsubsection.2.1.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces The predictive distribution of the full GP model expressed by 9 training points.}}{12}{figure.8}}
+\newlabel{fig:sgpr:fullgp}{{8}{12}{The predictive distribution of the full GP model expressed by 9 training points}{figure.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces The similar predictive distribution of another GP model expressed by only 3 pseudo points.}}{12}{figure.9}}
+\newlabel{fig:sgpr:sparsegp}{{9}{12}{The similar predictive distribution of another GP model expressed by only 3 pseudo points}{figure.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Direct Method for Gaussian Processes Time-Series model}{13}{subsubsection.2.1.3}}
+\newlabel{s:pilco:ssm}{{2.1.3}{13}{Direct Method for Gaussian Processes Time-Series model}{subsubsection.2.1.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces The Direct Method for Gaussian Processes Time-Series model in which: $y_{t}$ is a noisy observation of the state at time $t$; $x_{t}$ is a distribution over the latent state at time $t$; \relax $\@@underline {\hbox {\relax $\@@underline {\hbox {x}}\mathsurround \z@ $\relax }}\mathsurround \z@ $\relax \ and\ \relax $\@@underline {\hbox {\relax $\@@underline {\hbox {f}}\mathsurround \z@ $\relax }}\mathsurround \z@ $\relax \ are the pseudo inputs and the pseudo targets of the parametric GP model; $\epsilon _{pn}$ and $\epsilon _{on}$ stand for process and observation noise respectively.}}{13}{figure.10}}
+\newlabel{fig:dtsm:basic}{{10}{13}{The Direct Method for Gaussian Processes Time-Series model in which: $y_{t}$ is a noisy observation of the state at time $t$; $x_{t}$ is a distribution over the latent state at time $t$; \underline {\underline {x}}\ and\ \underline {\underline {f}}\ are the pseudo inputs and the pseudo targets of the parametric GP model; $\epsilon _{pn}$ and $\epsilon _{on}$ stand for process and observation noise respectively}{figure.10}{}}
+\citation{mch-thesis}
+\newlabel{eq:ssm:lik}{{5}{14}{Direct Method for Gaussian Processes Time-Series model}{equation.2.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces The Direct Method for Gaussian Processes Time-Series model with two parametric GP models.}}{14}{figure.11}}
+\newlabel{fig:dtsm:twogps}{{11}{14}{The Direct Method for Gaussian Processes Time-Series model with two parametric GP models}{figure.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Policy model}{15}{subsection.2.2}}
+\newlabel{s:pilco:pol}{{2.2}{15}{Policy model}{subsection.2.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Radial Basis Function network}{15}{subsubsection.2.2.1}}
+\newlabel{s:pilco:rbf}{{2.2.1}{15}{Radial Basis Function network}{subsubsection.2.2.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces The uncertain state $x_{t}$ with standard deviation equalled to $0.5$. There is a linear relationship between the state $x_{t}$ and the applied action $u_{t}$ chosen by the closed-loop controller.}}{16}{figure.12}}
+\newlabel{fig:pol:variancext}{{12}{16}{The uncertain state $x_{t}$ with standard deviation equalled to $0.5$. There is a linear relationship between the state $x_{t}$ and the applied action $u_{t}$ chosen by the closed-loop controller}{figure.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces The uncertain state $x_{t+1}$ with standard deviation equalled to $0.2$}}{16}{figure.13}}
+\newlabel{fig:pol:variancext1}{{13}{16}{The uncertain state $x_{t+1}$ with standard deviation equalled to $0.2$}{figure.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Sequence of Linear models}{16}{subsubsection.2.2.2}}
+\newlabel{s:pilco:seqlin}{{2.2.2}{16}{Sequence of Linear models}{subsubsection.2.2.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}PILCO training}{16}{subsection.2.3}}
+\newlabel{s:pilco:training}{{2.3}{16}{PILCO training}{subsection.2.3}{}}
+\@setckpt{pilco}{
+\setcounter{page}{18}
+\setcounter{equation}{7}
+\setcounter{enumi}{0}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{section}{2}
+\setcounter{subsection}{3}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{13}
+\setcounter{table}{0}
+\setcounter{Item}{0}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{0}
+\setcounter{AM@survey}{0}
+\setcounter{lstnumber}{1}
+\setcounter{parentequation}{0}
+\setcounter{float@type}{8}
+\setcounter{FBl@b}{0}
+\setcounter{FRobj}{0}
+\setcounter{FRsobj}{0}
+\setcounter{FBcnt}{0}
+\setcounter{subfigure}{0}
+\setcounter{lofdepth}{1}
+\setcounter{subtable}{0}
+\setcounter{lotdepth}{1}
+\setcounter{section@level}{2}
+\setcounter{lstlisting}{0}
+}

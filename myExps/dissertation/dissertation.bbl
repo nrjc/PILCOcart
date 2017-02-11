@@ -1,0 +1,45 @@
+% abbrvDOI.bst by David Kotz.
+% You must add this to your latex preamble:
+%    \usepackage{url}
+% or, if you want hyperlinks:
+%    \usepackage{hyperref}
+
+\begin{thebibliography}{1}
+\urlstyle{same} % format URLs in normal font
+\DeclareUrlCommand\DOIasURL{\urlstyle{same}} % format DOIs same
+\ifx\undefined\hypersetup% hyperref is not loaded
+ \newcommand\DOIbbl[1]{\DOIasURL{#1}}
+\else% hyperref is loaded, we can put a link under the DOI
+ \newcommand\DOIbbl[1]{\href{http://dx.doi.org/#1}{\DOIasURL{#1}}}
+\fi
+
+\bibitem{candela2003propagation}
+J.~Q. Candela, A.~Girard, J.~Larsen, and C.~E. Rasmussen.
+\newblock Propagation of uncertainty in bayesian kernel models-application to
+  multiple-step ahead forecasting.
+\newblock In {\em Acoustics, Speech, and Signal Processing, 2003.
+  Proceedings.(ICASSP'03). 2003 IEEE International Conference on}, volume~2,
+  pages II--701. IEEE, 2003.
+
+\bibitem{deisenroth2011pilco}
+M.~Deisenroth and C.~E. Rasmussen.
+\newblock Pilco: A model-based and data-efficient approach to policy search.
+\newblock In {\em Proceedings of the 28th International Conference on machine
+  learning (ICML-11)}, pages 465--472, 2011.
+
+\bibitem{mch-thesis}
+A.~McHutchon.
+\newblock {\em Nonlinear Modelling And Control Using Gaussian Processes}.
+\newblock PhD thesis, University of Cambridge, 2014.
+
+\bibitem{rasmussen2006gaussian}
+C.~E. Rasmussen.
+\newblock Gaussian processes for machine learning.
+\newblock 2006.
+
+\bibitem{snelson2006sparse}
+E.~Snelson and Z.~Ghahramani.
+\newblock Sparse gaussian processes using pseudo-inputs.
+\newblock 2006.
+
+\end{thebibliography}

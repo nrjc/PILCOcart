@@ -1,0 +1,19 @@
+\contentsline {section}{\numberline {1}Introduction}{7}{section.1}
+\contentsline {section}{\numberline {2}Probabilistic inference for control}{9}{section.2}
+\contentsline {subsection}{\numberline {2.1}Dynamics model}{9}{subsection.2.1}
+\contentsline {subsubsection}{\numberline {2.1.1}Gaussian Processes for Regression}{10}{subsubsection.2.1.1}
+\contentsline {subsubsection}{\numberline {2.1.2}Sparse Gaussian Processes}{12}{subsubsection.2.1.2}
+\contentsline {subsubsection}{\numberline {2.1.3}Direct Method for Gaussian Processes Time-Series model}{13}{subsubsection.2.1.3}
+\contentsline {subsection}{\numberline {2.2}Policy model}{15}{subsection.2.2}
+\contentsline {subsubsection}{\numberline {2.2.1}Radial Basis Function network}{15}{subsubsection.2.2.1}
+\contentsline {subsubsection}{\numberline {2.2.2}Sequence of Linear models}{16}{subsubsection.2.2.2}
+\contentsline {subsection}{\numberline {2.3}PILCO training}{16}{subsection.2.3}
+\contentsline {section}{\numberline {3}Experiments with physical apparatus}{18}{section.3}
+\contentsline {subsection}{\numberline {3.1}State representation}{18}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Delay and noise levels}{20}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Single pendulum}{21}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Double pendulum}{23}{subsection.3.4}
+\contentsline {subsubsection}{\numberline {3.4.1}Sequence of linear models as policy representation}{25}{subsubsection.3.4.1}
+\contentsline {subsubsection}{\numberline {3.4.2}Dynamics model}{26}{subsubsection.3.4.2}
+\contentsline {subsubsection}{\numberline {3.4.3}Controller}{28}{subsubsection.3.4.3}
+\contentsline {section}{\numberline {4}Conclusions}{30}{section.4}

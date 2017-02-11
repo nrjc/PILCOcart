@@ -47,7 +47,7 @@ poli = [1 2 3 4 5 8 9 10 11]; % indicies for inputs to the policy
 % Training parameters
 dt = 1/20;                % [s] sampling time
 plant.delay = 0.010;                 % with a delay in the contol loop of 10 ms
-T = 1.5;                  % [s] horizon time
+T = 3;                  % [s] horizon time
 H = ceil(T/dt);           % prediction steps (optimization horizon)
 S0 = diag([1e-4 0.1 0.01 0.01 0.1 0.1 0.1 ].^2); % initial state covariance
 mu0 = [0 0 0 0 0 pi pi]';   % initial state mean

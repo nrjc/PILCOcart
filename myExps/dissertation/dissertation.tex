@@ -1,0 +1,85 @@
+\documentclass[a4paper]{article}
+
+%\usepackage{ifpdf}
+\usepackage{enumerate}
+
+
+%\ifpdf % options for PDF output
+ \pdfoutput=1
+ \pdfcompresslevel=9
+ \pdfpagewidth=8.5truein % force US letter size to match ACM template
+ \pdfpageheight=11.0truein
+ \usepackage[pdftex]{graphicx}
+ \DeclareGraphicsExtensions{.pdf, .png, .jpg}
+ \usepackage[pdftex,colorlinks=true,pdfpagemode=UseNone,pdfstartview=FitH,linkcolor=black,citecolor=black,urlcolor=blue,bookmarks=false]{hyperref}
+ \usepackage[usenames]{color}%for color names
+ \pdfinfo{
+ /Title (PAPER TITLE)
+ /Author (YOUR NAME)
+ /Keywords (sensors, social network)
+ }
+%\else
+% \usepackage[dvips]{graphicx}
+% \DeclareGraphicsExtensions{.eps, .png, .jpg}
+% \usepackage[usenames]{color}%for color names
+% \newcommand{\url}[1]{#1} % hide hrefs
+%\fi
+
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage[table]{xcolor}
+\usepackage{pdfpages}
+\usepackage{colortbl}
+\usepackage{hhline}
+\usepackage{pifont}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{floatrow}
+
+\newcommand\Tstrut{\rule{0pt}{2.6ex}}       % "top" strut
+\newcommand\Bstrut{\rule[-0.9ex]{0pt}{0pt}} % "bottom" strut
+\newcommand{\TBstrut}{\Tstrut\Bstrut} % top&bottom struts
+
+%this is for the title page doc:
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+% Comment this out when not in draft mode
+\def\draftmode{} % useful for \ifx\draftmode\undefined<thencode>\fi in text
+
+\input{macros}
+
+\title{Dissertation}
+\date{\today}
+\author{Martin Maciej Kukla}
+
+%\setcounter{tocdepth}{2}
+\begin{document}
+
+%\maketitle
+\input{title.tex}
+
+\include{declaration}
+
+\include{acknowled}
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\newpage
+
+
+\tableofcontents
+\listoffigures
+%\listofalgorithms
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{intro}
+\include{pilco}
+\include{exps}
+\include{con}
+
+
+\bibliographystyle{abbrvDOI}
+\bibliography{dissertation}
+
+\appendix
+\end{document}

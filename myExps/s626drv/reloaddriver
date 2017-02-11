@@ -1,0 +1,6 @@
+make clean
+make
+sudo make install
+sudo modprobe s626
+make clnall
+make lib
