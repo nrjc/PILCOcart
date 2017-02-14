@@ -82,6 +82,7 @@ plant.augi = augi;
 % policy.opt = ...
 %         struct('length',-30,'method','BFGS','MFEPLS',20,'verbosity',3,'fh',1);
 global currT;
+nc = 10;
 policy.fcn = @(policy,m,s)conCat(@congp,@gSat7,policy,m,s);
 policy.maxU = maxU;                      % max. amplitude of control
 mm = trigaug(mu0, zeros(length(mu0)), plant.angi);
