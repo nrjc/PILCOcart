@@ -18,7 +18,6 @@ function doitStabilizeTiming(delay, error, batchnum)
 %
 % Copyright (C) 2008-2015 by Marc Deisenroth and Carl Edward Rasmussen,
 % Jonas Umlauft, Rowan McAllister 2015-07-01
-clear all;
 	    close all;
 	    clc
 	    dbstop if error
