@@ -1,4 +1,10 @@
 function doitStabilizeTiming(delay, error, batchnum) 
+if (isstring(delay))
+    delay = str2double(delay);
+end
+if (isstring(error))
+    error = str2double(error);
+end
 
 % cart-doube-pole experiment
 %
