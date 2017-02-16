@@ -1,10 +1,11 @@
+function doitStabilizeTiming(delay, errorlevel, batchnum) 
+
 if (isstring(delay))
     delay = str2double(delay);
 end
 if (isstring(error))
     error = str2double(error);
 end
-function doitStabilizeTiming(delay, errorlevel, batchnum) 
 
 % cart-doube-pole experiment
 %
