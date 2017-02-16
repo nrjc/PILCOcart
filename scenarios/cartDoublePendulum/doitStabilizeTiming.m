@@ -1,12 +1,4 @@
 function doitStabilizeTiming(delay, errorlevel, batchnum) 
-
-if (isstring(delay))
-    delay = str2double(delay);
-end
-if (isstring(errorlevel))
-    errorlevel = str2double(errorlevel);
-end
-
 % cart-doube-pole experiment
 %
 %    dyno
@@ -25,6 +17,15 @@ end
 %
 % Copyright (C) 2008-2015 by Marc Deisenroth and Carl Edward Rasmussen,
 % Jonas Umlauft, Rowan McAllister 2015-07-01
+
+
+if (isstring(delay))
+    delay = str2double(delay);
+end
+if (isstring(errorlevel))
+    errorlevel = str2double(errorlevel);
+end
+
 	    close all;
 	    clc
 	    dbstop if error
