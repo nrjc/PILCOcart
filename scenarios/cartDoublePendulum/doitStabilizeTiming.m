@@ -1,3 +1,5 @@
+function doitStabilizeTiming(delay, error, batchnum) 
+
 % cart-doube-pole experiment
 %
 %    dyno
@@ -17,14 +19,10 @@
 % Copyright (C) 2008-2015 by Marc Deisenroth and Carl Edward Rasmussen,
 % Jonas Umlauft, Rowan McAllister 2015-07-01
 clear all;
-errormag = [1];
-delay = [0.051 0.053 0.055 0.057 0.060];
-for errornum = 1
-	for delaynum = 1:5
 	    close all;
 	    clc
 	    dbstop if error
-	    basename = ['CartDoubleStabilizeTiming' int2str(errornum) 'delay' int2str(delaynum) 'l'];
+	    basename = ['CartDoubleStabilizeTimingdelay' int2str(batchnum)];
 
 	    varNames = {'dx','dtheta1','dtheta2','x','theta1','theta2'};
 	    varUnits = {'m/s','rad/s','rad/s','m','rad','rad'};
@@ -52,7 +50,7 @@ for errornum = 1
 
 	    % Training parameters
 	    dt = 1/20;                % [s] sampling time
-	    plant.delay = delay(delaynum);                 % with a delay in the contol loop of 10 ms
+	    plant.delay = delay;                 % with a delay in the contol loop of 10 ms
 	    T = 1.5;                  % [s] horizon time
 	    H = ceil(T/dt);           % prediction steps (optimization horizon)
 	    S0 = diag([1e-4 0.1 0.01 0.01 0.1 0.1 0.05 ].^2); % initial state covariance
@@ -64,7 +62,7 @@ for errornum = 1
 	    K = 1;                    % number of initial states for which we optimize
 	    %nc = 50;                                                % number of policy RBFs 
 
-	    So = errormag(errornum)*0.25*[0.01/dt pi/180/dt pi/180/dt 0.01 pi/180 pi/180].^2; % noise levels, 1cm, 1 degree. This implements uncertainty in the readings!
+	    So = error*0.25*[0.01/dt pi/180/dt pi/180/dt 0.01 pi/180 pi/180].^2; % noise levels, 1cm, 1 degree. This implements uncertainty in the readings!
 	    %S0 = diag([1e-8,So]); % initial state covariance    % new change.
 	    s.m = mu0(1:7); s.s = S0(1:7,1:7);                              % initial state
 
@@ -133,6 +131,4 @@ for errornum = 1
 	      animate(latent(j+J), data(j+J), dt, cost);
 	      disp(['controlled trial # ' num2str(j)]);
         end
-	end
 end
-quit;

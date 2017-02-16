@@ -14,13 +14,22 @@ C = eye(6,6);
 D = zeros(6,1);
 
 %Create state space tf; 
-G2 = inv(tf([1 0],[1])*eye(6,6)-A) 
 G = ss(A,B,C,D);
 delayterms(1)=struct('delay',0.05,'a',zeros(6,6),'b',B,'c',zeros(6,6),'d',zeros(6,1));
 Gdel = pade(delayss(A,zeros(6,1),C,D,delayterms),10);
+
+
+%Symbolic 
+x = sym('x');
+y = sym('y');
+k = [x;y;zeros(4,1)];
+
+%% Alternate approach: Lyapunov
+Anew = A + B*k';
+lambda = eig(Anew)
+%% Failed approach: Gap metric. 
+
 [K,CL,gam,info]=ncfsyn(G);
-
-
 pole(feedback(Gdel,-K))
 gap = gapmetric(G,Gdel)
 maxmargin = info.emax

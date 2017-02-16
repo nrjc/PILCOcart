@@ -70,29 +70,6 @@ void applyController(int frame_interval, float dt, float sens_pos, float sens_ve
   call_count = call_count + 1;
 }
 
-void applylearnedController(mat centers, mat weights, mat W, mat state, int &signal, bool &return_mid)
-{
-
-    W = diagmat(exp(-2*W));
-    mat ones;
-    ones.ones(50, 1); // 100 weights
-    centers = centers - ones*state.t(); // Makes each row into a difference
-
-    mat evaluation = centers%centers;
-    evaluation = evaluation*W;
-    evaluation = sum(evaluation, 1);
-    evaluation = exp(-0.5*evaluation);
-    evaluation = weights.t()*evaluation;
-
-    //Pass through squashing function
-    evaluation = (9*sin(evaluation) + sin(3*evaluation))/8;
-    signal = (int) (evaluation(0,0)*10000);
-
-    
-    S626_WriteDAC(0, 0, signal);
-
-}
-
 using namespace std;
 
 IplImage* GetColourImage(IplImage* imgHSV, int h_low, int s_low, int v_low, int h_high, int s_high, int v_high){
@@ -461,16 +438,12 @@ int main()
     float sens_pos_pred = calc_expected_pos(sens_pos, sens_vel, dt);
       
     //EXIT AND PRINT CURRENT TIME IF CHANGE IN POS IS DETECTED.
-      if (cart_velocity!=0) {
-          printf("The time taken to detect movement is:%d",curr_time-initiation_time);
-          return;
-      }
-    if (curr_time > 4.1 + initiation_time && !end_return || (sens_pos_pred<-SIDE_LIMIT || sens_pos_pred>SIDE_LIMIT))
-      {
+    if (cart_velocity!=0) {
         S626_WriteDAC (0, 0, 0);
-        state_data.close();
-        end_return = 1;
-      }
+        printf("The time taken to detect movement is:%d",curr_time-initiation_time-0.5);
+        break;
+    }
+
     if(start) syncro_counter++;
     if (curr_time > 12.5 + initiation_time) {S626_WriteDAC (0, 0, 0); break;}
   }

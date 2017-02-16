@@ -24,7 +24,7 @@ end
   ctrl, cost, H, expl, cc_prev, N-j+1); %#ok<IJCL>
 policies{j} = p;
 ctrl.set_policy_p(p);
-ctrl.set_policy_opt(pp);
+% ctrl.set_policy_opt(pp); Apparently this doesn't work
 % 2b. Exploration reference point to improve over next time:
 if ~isempty(expl); [~, ~, ~, cc_prev] = simulate(s, dyn, ctrl, cost, H, expl.ccs_cov); end
 
