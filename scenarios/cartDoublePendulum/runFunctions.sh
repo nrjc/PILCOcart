@@ -6,6 +6,6 @@ do
 for delay in 0.25 1 2 4
 do
 nohup ${matlab_exec} -nodesktop -nosplash -nodisplay -r "try;doitSwingup($error,$delay,$batchnum);exit;" > nohup${batchnum}.out 2>&1&
-((batchnum+=1))
+batchnum=$((batchnum+1))
 done
 done
