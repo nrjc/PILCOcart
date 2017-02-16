@@ -1,10 +1,10 @@
-function doitStabilizeTiming(delay, error, batchnum) 
 if (isstring(delay))
     delay = str2double(delay);
 end
 if (isstring(error))
     error = str2double(error);
 end
+function doitStabilizeTiming(delay, errorlevel, batchnum) 
 
 % cart-doube-pole experiment
 %
@@ -27,7 +27,7 @@ end
 	    close all;
 	    clc
 	    dbstop if error
-	    basename = ['CartDoubleStabilizeTimingdelay' int2str(batchnum)];
+	    basename = ['CartDoubleStabilizeTimingdelay' int2str(batchnum) 'n'];
 
 	    varNames = {'dx','dtheta1','dtheta2','x','theta1','theta2'};
 	    varUnits = {'m/s','rad/s','rad/s','m','rad','rad'};
@@ -67,7 +67,7 @@ end
 	    K = 1;                    % number of initial states for which we optimize
 	    %nc = 50;                                                % number of policy RBFs 
 
-	    So = error*0.25*[0.01/dt pi/180/dt pi/180/dt 0.01 pi/180 pi/180].^2; % noise levels, 1cm, 1 degree. This implements uncertainty in the readings!
+	    So = errorlevel*0.25*[0.01/dt pi/180/dt pi/180/dt 0.01 pi/180 pi/180].^2; % noise levels, 1cm, 1 degree. This implements uncertainty in the readings!
 	    %S0 = diag([1e-8,So]); % initial state covariance    % new change.
 	    s.m = mu0(1:7); s.s = S0(1:7,1:7);                              % initial state
 
