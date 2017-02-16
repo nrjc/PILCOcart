@@ -1,7 +1,7 @@
 #!/bin/sh
 matlab_exec=/misc/apps/matlab/matlabR2015b/bin/matlab
 batchnum=0
-for error in 0.05 0.053 0.055 0.057 0.060
+for error in 0.051 0.053 0.055 0.057 0.060
 do
 for delay in 0.25 1 2 4
 do
