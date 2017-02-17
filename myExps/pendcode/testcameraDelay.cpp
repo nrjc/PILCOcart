@@ -440,7 +440,7 @@ int main()
     //EXIT AND PRINT CURRENT TIME IF CHANGE IN POS IS DETECTED.
     if (cart_velocity!=0) {
         S626_WriteDAC (0, 0, 0);
-        printf("The time taken to detect movement is:%d",curr_time-initiation_time-0.5);
+        printf("The time taken to detect movement is:%f",curr_time-initiation_time-0.5);
         break;
     }
 
