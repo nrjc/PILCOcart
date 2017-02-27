@@ -18,7 +18,7 @@
 % Jonas Umlauft, Rowan McAllister 2015-07-20
 clear; close all; clc
 dbstop if error
-basename = 'CartDoubleSwingup';
+basename = 'CartDoubleSwingupRestart';
 
 varNames = {'dx','dtheta1','dtheta2','x','theta1','theta2'};
 varUnits = {'N','m/s','rad/s','rad/s','m','rad','rad'};
