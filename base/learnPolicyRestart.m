@@ -13,10 +13,21 @@ if ~exist('cc_prev','var'); cc_prev.m = (H+1)*cost.MAX_COST; cc_prev.s = 1; end
 losses = nan(j-1,1);
 for i = 1:j-1 % loop over previous epsidoes' polices (current episode is 'j')
   losses(i) = loss(policies{i}, s, dyn, ctrl, cost, H, expl, cc_prev, N-j+1);
+  if (length(find(abs(policies{i}.w)>4))>5)
+     losses(i) = inf; 
+  end
 end
 if ~isempty(losses)
-  [~, i] = min(losses);
-  ctrl.set_policy_p(policies{i});
+  [curmax, i] = min(losses);
+  if curmax~=inf
+    ctrl.set_policy_p(policies{i});
+  else
+    %Restart policy optimization if weights are too large
+    ctrl.policy.p.w = 0.1*randn(nc, U);
+    mm = trigaug(mu0, zeros(length(mu0)), plant.angi);
+    ctrl.policy.p.cen = gaussian(mm(poli),eye(length(poli)),nc)';
+    ctrl.policy.p.ll = log([1 1 0.7 0.7 0.7 0.7 0.7 0.7 0.7]');
+  end
 end
 
 % 2. Optimize policy
