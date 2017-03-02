@@ -47,7 +47,9 @@ obs_noise = @()(randn(1,E)*chol(plant.noise));
 latent(1,:) = start;                                               % initialise
 y(1,1:D-E) = latent(1,1:D-E);
 y(1,D-E+1:D) = latent(1,D-E+1:D) + obs_noise();     % add noise to observations
-if calc_loss; L(1) = cost.fcn(struct('m',latent(1,1:D)')).m; end
+if (calc_loss)
+    L(1) = cost.fcn(struct('m',latent(1,1:D)')).m; 
+end
 
 s.m = y(1,1:D)'; s = ctrl.reset_filter(s);             % reset filter if exists
 
@@ -64,14 +66,16 @@ for i = 1:H   % --------------------------------------------------- run ROLLOUT
   s.m(D+1:F) = uzm(U+1:end); % predicted filter 'zm' component of uzm
   
   latent_tmp = [latent(i,1:D), u(i,:)];              % copy for N-Markov states
-  latent(i+1,1:D-E) = latent_tmp(end-D+E+1:end);
   latent(i+1,:) = augment(odestep(latent(i,odei), u(i,:), plant), plant);
+  latent(i+1,1:D-E) = latent_tmp(end-D+E+1:end);
   
   y_tmp = [y(i,1:D), u(i,:), latent(i+1,D-E+1:D) + obs_noise()];
   y(i+1,1:D) = y_tmp(end-D+1:end);                   % TODO: add process noise?
   
   % Compute Cost --------------------------------------------------------------
-  if calc_loss; L(i+1) = cost.fcn(struct('m',latent(i+1,1:D)')).m; end
+  if calc_loss
+      L(i+1) = cost.fcn(struct('m',latent(i+1,1:D)')).m; 
+  end
 end
 if verb; disp(['Trial lasted ',num2str(floor(H)),' steps']); end
 

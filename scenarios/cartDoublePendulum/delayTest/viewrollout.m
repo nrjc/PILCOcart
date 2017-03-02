@@ -1,6 +1,7 @@
 close all;
 clear all;
 setdir;
-load ./swingup/CartDoubleSwingupRestart61_H60.mat
+load ./swingup/CartDoubleSwingupRestart93_H60.mat
 plotall;
-animate(latent(j+1), data(j+1), dt, cost);
+currentrun = j+1;
+animate(latent(currentrun), data(currentrun), dt, cost);

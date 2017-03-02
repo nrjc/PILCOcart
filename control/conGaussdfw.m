@@ -79,8 +79,8 @@ for i = 1:E
   
   % ---------------------------------- derivatives w.r.t basis-function weights
   %Weights are NOT to be updated. 
-  %dMdw(i,:,i) = c*l';
-  %dCdw(:,i,:,i) = c*bsxfun(@times,tt,l)';
+  dMdw(i,:,i) = c*l';
+  dCdw(:,i,:,i) = c*bsxfun(@times,tt,l)';
   
   % ------------------------------------------- derivatives w.r.t length-scales
     detdX = diag(bsxfun(@times,det(RR)*iRR',2.*exp(2.*ll(:,i))));

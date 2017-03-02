@@ -53,7 +53,7 @@ S0 = diag([1e-4 0.1 0.01 0.01 0.1 0.1 0.1 ].^2); % initial state covariance
 mu0 = [0 0 0 0 0 pi pi]';   % initial state mean
 maxU = 20; 
 N = 100;                   % number controller optimizations
-J = 1;                    % J trajectories, each of length H for initial training
+J = 5;                    % J trajectories, each of length H for initial training
 K = 1;                    % number of initial states for which we optimize
 
 So = 0.25*[0.01/dt pi/180/dt pi/180/dt 0.01 pi/180 pi/180].^2; % noise levels, 1cm, 1 degree
@@ -73,7 +73,7 @@ plant.augi = augi;
 
 % Policy
 nc = 40;
-policy.fcn = @(policy,m,s)conCat(@conGaussdfw,@gSat,policy,m,s);
+policy.fcn = @(policy,m,s)conCat(@conGaussd,@gSat,policy,m,s);
 policy.maxU = maxU;                      % max. amplitude of control
 mm = trigaug(mu0, zeros(length(mu0)), plant.angi);
 policy.p.cen = gaussian(mm(poli),eye(length(poli)),nc)';
@@ -128,7 +128,7 @@ dyn.train(data,dyni,plant.dyno);
   disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
 	  'observation noise|process noise std|inducing targets', '%0.5f');
 
-  learnPolicy;
+  learnPolicyZeroWeight;
   
   if pred(j).cost(end).m < 0.3
     policy.p = ctrl.policy.p;

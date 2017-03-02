@@ -41,3 +41,9 @@ for i = 1:U
   ylabel('N'); 
 end
 drawnow;
+
+%Plot predicted costs
+[pred(j).state,pred(j).action,pred(j).cost] = simulate(s, dyn, ctrl, cost, H, false);
+if ~ishandle(3); figure(3); else set(0,'CurrentFigure',3); end
+clf(3); errorbar(0:H, [pred(j).cost.m], 2*sqrt([pred(j).cost.s]));
+axis tight; grid; drawnow;
