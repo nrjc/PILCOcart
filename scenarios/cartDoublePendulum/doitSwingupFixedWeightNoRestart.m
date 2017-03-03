@@ -72,13 +72,13 @@ plant.dyno = dyno;
 plant.augi = augi;
 
 % Policy
-nc = 40;
+nc = 100;
 policy.fcn = @(policy,m,s)conCat(@conGaussd,@gSat,policy,m,s);
 policy.maxU = maxU;                      % max. amplitude of control
 mm = trigaug(mu0, zeros(length(mu0)), plant.angi);
 policy.p.cen = gaussian(mm(poli),eye(length(poli)),nc)';
 policy.p.ll = log([1 1 0.7 0.7 0.7 0.7 0.7 0.7 0.7]');
-policy.p.w = 0.1*randn(nc, U);
+policy.p.w = [ones(nc/2, U); -ones(nc/2,U)];
 
 
 policy.opt = ...

@@ -1,4 +1,10 @@
 %Plot Stuff
+%Plot predicted costs
+[pred(j).state,pred(j).action,pred(j).cost] = simulate(s, dyn, ctrl, cost, H, false);
+if ~ishandle(3); figure(3); else set(0,'CurrentFigure',3); end
+clf(3); errorbar(0:H, [pred(j).cost.m], 2*sqrt([pred(j).cost.s]));
+axis tight; grid; drawnow;
+hold on;
 for ii=1:Nroll; plot(0:length(rC{ii})-1,rC{ii},'r'); end % plot the real losses
 plot(0:length(realCost{J+j})-1,realCost{J+j},'g'); drawnow; % repeat green line
 
@@ -42,8 +48,3 @@ for i = 1:U
 end
 drawnow;
 
-%Plot predicted costs
-[pred(j).state,pred(j).action,pred(j).cost] = simulate(s, dyn, ctrl, cost, H, false);
-if ~ishandle(3); figure(3); else set(0,'CurrentFigure',3); end
-clf(3); errorbar(0:H, [pred(j).cost.m], 2*sqrt([pred(j).cost.s]));
-axis tight; grid; drawnow;
