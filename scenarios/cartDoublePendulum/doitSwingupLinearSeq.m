@@ -75,7 +75,11 @@ plant.augi = augi;
 policy.maxU = maxU;                      % max. amplitude of control
 policy.p=struct([]);
 for i=1:H
-policy.p(i).w = 0*randn(U, numel(poli));
+    if (i<H/2)
+        policy.p(i).w = ones(U, numel(poli));
+    else
+        policy.p(i).w = -ones(U, numel(poli));
+    end
 policy.p(i).b = 0*randn(U, 1);
 end
 policy.fcn = @(policy,m,s)conCat(@conHManylin,@gSat,policy,m,s);
