@@ -298,7 +298,7 @@ int main()
     static float redposX = 0;
     static float redposY = 0;
 
-    float redlastX = redeposX;
+    float redlastX = redposX;
     float redlastY = redposY;
 
     processImage(frame, &redposX, &redposY, REDTHRESH);
@@ -318,10 +318,12 @@ int main()
     S626_ReadADC (0, databuf);
     float sens_pos = (short)databuf[0]*(-0.08);
     float sens_vel = (short)databuf[1]*(-0.43);
+      
+      bool applycontrollerbuffer = true;
 
     // Applies a control signal every second time step
     if(start){
-      applyController(5,dt,0,0,signal,0);
+      applyController(5,dt,0,0,signal,applycontrollerbuffer);
     }
     
 
