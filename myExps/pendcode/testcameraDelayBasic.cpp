@@ -183,7 +183,7 @@ int main()
 
   // Initialize capturing live feed from the camera
   CvCapture* capture = 0;
-  capture = cvCaptureFromCAM(0);
+  capture = cvCaptureFromCAM(CV_CAP_ANY);
   int width = 640;
   int height = 480;
   cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width );
