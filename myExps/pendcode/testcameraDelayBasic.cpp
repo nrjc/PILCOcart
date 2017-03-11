@@ -241,7 +241,7 @@ int main()
     dt = curr_time - last_time;
     }
   cout << "Dt is:" << dt << endl;
-  bool start = 0;
+  bool start = true;
 
   
   // An infinite loop
