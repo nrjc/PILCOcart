@@ -243,9 +243,7 @@ int main()
   cout << "Dt is:" << dt << endl;
   bool start = 0;
 
-  // In case of random trial
-  srand ( time(0) ); rand();
-
+  
   // An infinite loop
   while(true)
   {
