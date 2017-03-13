@@ -80,7 +80,7 @@ IplImage* GetColourImage(IplImage* imgHSV, int h_low, int s_low, int v_low, int 
 //                hl    sl   vl  hh  sh   vh
 #define GREENTHRESH 50, 130, 80, 90, 256, 256
 #define ORANGETHRESH 10, 150, 200, 20, 256, 256
-#define REDTHRESH 220, 0, 0, 256, 120, 120
+#define REDTHRESH 340, 80, 70, 360, 100, 100
 
 
 void getCameraFrame(IplImage** &img, CvCapture** &capture, int* &latest_frame_number/*, int* &processed_frame_number*/){
