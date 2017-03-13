@@ -94,7 +94,7 @@ void getCameraFrame(IplImage** &img, CvCapture** &capture, int* &latest_frame_nu
 void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_low, int v_low, int h_high, int s_high, int v_high){
     // Holds the Red thresholded image (green = white, rest = black)
     IplImage* imgThresh = GetColourImage(frame, h_low, s_low, v_low, h_high, s_high, v_high);
-    CvScalar c = cv::cvAvg(imgThresh);
+    CvScalar c = cvAvg(imgThresh);
     
 
     //cout << endl << "Area of green part = " << greenarea << endl;
