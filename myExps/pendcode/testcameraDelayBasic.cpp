@@ -99,8 +99,8 @@ void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_lo
 
     //cout << endl << "Area of green part = " << greenarea << endl;
 
-    (*posX) = 0;
-    (*posY) = c.val[1];
+    (*posX) = c.val[0];
+    (*posY) = 0;
 
     cvReleaseImage(&imgThresh);
 }
