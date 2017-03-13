@@ -18,6 +18,7 @@ using namespace arma;
 #include <fstream>
 #include <ctime>
 #include "boost/thread.hpp"
+#include "types_c.h"
 
 extern "C" {
 #include "s626drv.h"
