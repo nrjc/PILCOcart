@@ -291,7 +291,7 @@ int main()
     float redlastX = redposX;
     float redlastY = redposY;
 
-    processImage(frame, &redposX, &redposY, REDTHRESH);
+    processImage(frame, &redposX, &redposY, GREENTHRESH);
     cout << "Brightness is: " << redposX << endl;
 
 
