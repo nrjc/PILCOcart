@@ -63,8 +63,8 @@ void applyController(int frame_interval, float dt, float sens_pos, float sens_ve
         if(signal * sens_pos >0)
           signal *=-1;
       }
-      cout << "Sens pos is:" << sens_pos << endl;
-      cout << "Input force is:" << signal << endl;
+      //cout << "Sens pos is:" << sens_pos << endl;
+      //cout << "Input force is:" << signal << endl;
       S626_WriteDAC(0,0, signal);
     }
   call_count = call_count + 1;
@@ -96,7 +96,7 @@ void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_lo
     IplImage* imgThresh = GetColourImage(frame, h_low, s_low, v_low, h_high, s_high, v_high);
     CvScalar c = cvAvg(imgThresh);
     
-    cout << "Value of scalar"<<c.val[0]<<","<<c.val[1]<<","<<c.val[2]<<","<<c.val[3]<<endl;
+    //cout << "Value of scalar"<<c.val[0]<<","<<c.val[1]<<","<<c.val[2]<<","<<c.val[3]<<endl;
     //cout << endl << "Area of green part = " << greenarea << endl;
 
     (*posX) = c.val[0];
