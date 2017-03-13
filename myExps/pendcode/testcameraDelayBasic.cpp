@@ -307,9 +307,9 @@ int main()
 
     
     // Acquire readings from sensor
-    S626_ReadADC (0, databuf);
-    float sens_pos = (short)databuf[0]*(-0.08);
-    float sens_vel = (short)databuf[1]*(-0.43);
+    //S626_ReadADC (0, databuf);
+    //float sens_pos = (short)databuf[0]*(-0.08);
+    //float sens_vel = (short)databuf[1]*(-0.43);
       
       bool applycontrollerbuffer = true;
 
@@ -331,7 +331,7 @@ int main()
     // Write to videosens_vel = (short)databuf[1]*(-0.43);
     cvWriteFrame(writer, video);
 
-    S626_ReadADC (0, databuf);
+    //S626_ReadADC (0, databuf);
       
     //EXIT AND PRINT CURRENT TIME IF CHANGE IN POS IS DETECTED.
     if (redposX!=redlastX) {
