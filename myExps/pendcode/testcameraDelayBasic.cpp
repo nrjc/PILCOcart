@@ -92,25 +92,17 @@ void getCameraFrame(IplImage** &img, CvCapture** &capture, int* &latest_frame_nu
 }
 
 void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_low, int v_low, int h_high, int s_high, int v_high){
-    // Holds the Green thresholded image (green = white, rest = black)
-  IplImage* imgThresh = GetColourImage(frame, h_low, s_low, v_low, h_high, s_high, v_high);
-
-    // Calculate the moments to estimate the position
-    CvMoments *moments = (CvMoments*)malloc(sizeof(CvMoments));
-    cvMoments(imgThresh, moments, 1);
-
-    // The actual moment values
-    double moment10 = cvGetSpatialMoment(moments, 1, 0);
-    double moment01 = cvGetSpatialMoment(moments, 0, 1);
-    double area = cvGetCentralMoment(moments, 0, 0);
+    // Holds the Red thresholded image (green = white, rest = black)
+    IplImage* imgThresh = GetColourImage(frame, h_low, s_low, v_low, h_high, s_high, v_high);
+    CvScalar c = cv::cvAvg(imgThresh);
+    
 
     //cout << endl << "Area of green part = " << greenarea << endl;
 
-    (*posX) = moment10/area;
-    (*posY) = moment01/area;
+    (*posX) = 0;
+    (*posY) = c.d0;
 
     cvReleaseImage(&imgThresh);
-    delete moments;
 }
 
 
@@ -300,6 +292,8 @@ int main()
     float redlastY = redposY;
 
     processImage(frame, &redposX, &redposY, REDTHRESH);
+    cout << "Brightness is: " << redposX << endl;
+
 
     if(do_once) {
       //startLocation = orangeposX;
