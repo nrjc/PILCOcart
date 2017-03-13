@@ -18,7 +18,6 @@ using namespace arma;
 #include <fstream>
 #include <ctime>
 #include "boost/thread.hpp"
-#include "types_c.h"
 
 extern "C" {
 #include "s626drv.h"
@@ -101,7 +100,7 @@ void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_lo
     //cout << endl << "Area of green part = " << greenarea << endl;
 
     (*posX) = 0;
-    (*posY) = c.d0;
+    (*posY) = c.val[0];
 
     cvReleaseImage(&imgThresh);
 }
