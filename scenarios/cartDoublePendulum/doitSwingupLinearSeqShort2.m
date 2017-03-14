@@ -109,7 +109,7 @@ cost = Cost(D);
 setupFigures
 
 %% Initial Rollouts (apply random actions)
-ctrlRand = Ctrl(D, E, struct('type','random','maxU',maxU));
+ctrlRand = CtrlNF(D, E, policy, angi, poli);
 for j = 1:J                                        % get the first observations
   [data(j), latent(j), realCost{j}] = ...
     rollout(gaussian(mu0, S0), ctrlRand, H, plant, cost); %#ok<SAGROW>
