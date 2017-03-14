@@ -100,6 +100,7 @@ dyn = gpa(D+U, E, angi, 'vfe'); % 8 inputs, 6 outputs, and var number 2, 3 are a
 dyn.induce = zeros(300, 0, E);                % use 100 shared inducing inputs
 dyn.opt = ...
         struct('length',-300,'method','BFGS','MFEPLS',20,'verbosity',3,'fh',6);
+load learn20dyn.mat
 
 % Cost object
 cost = Cost(D);
