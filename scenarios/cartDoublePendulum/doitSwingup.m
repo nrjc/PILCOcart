@@ -53,7 +53,7 @@ S0 = diag([1e-4 0.1 0.01 0.01 0.1 0.1 0.1 ].^2); % initial state covariance
 mu0 = [0 0 0 0 0 pi pi]';   % initial state mean
 maxU = 20; 
 N = 100;                   % number controller optimizations
-J = 1;                    % J trajectories, each of length H for initial training
+J = 4;                    % J trajectories, each of length H for initial training
 K = 1;                    % number of initial states for which we optimize
 
 So = 0.25*[0.01/dt pi/180/dt pi/180/dt 0.01 pi/180 pi/180].^2; % noise levels, 1cm, 1 degree
@@ -82,7 +82,7 @@ policy.p.w = 0.1*randn(nc, U);
 
 
 policy.opt = ...
-        struct('length',-30,'method','BFGS','MFEPLS',20,'verbosity',3,'fh',1);
+        struct('length',-400,'method','BFGS','MFEPLS',20,'verbosity',3,'fh',1);
 global currT;
 % nc = 40;
 % policy.fcn = @(policy,m,s)conCat(@congp,@gSat7,policy,m,s);

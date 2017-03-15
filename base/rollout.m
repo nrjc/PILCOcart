@@ -81,6 +81,11 @@ if verb; disp(['Trial lasted ',num2str(floor(H)),' steps']); end
 
 data.state = y(1:H+1,:); data.action = u(1:H,:);
 latent2.state = latent(1:H+1,:); L = L(1,1:H+1);             % trim any trailing zeros
+% data.action = [zeros(offsetVar,size(data.action,2)); data.action];
+% data.action = data.action(1:H,:);
+% tempstatevar = data.state(:,1);
+% tempstatevar = [zeros(offsetVar,1); tempstatevar];
+% data.state(:,1) = tempstate
 
 %data.state = latent2.state; % HERE!
 
