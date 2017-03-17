@@ -47,4 +47,9 @@ for i = 1:U
   ylabel('N'); 
 end
 drawnow;
-
+figure;
+costs = [];
+for i=1:(j+1)
+    costs = [costs sum(realCost{i})];
+end
+plot(1:(j+1),costs)
