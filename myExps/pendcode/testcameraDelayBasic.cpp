@@ -239,6 +239,7 @@ int main()
   // An infinite loop
   while(true)
   {
+      cout << latest_frame_number <<":" <<processed_frame_number <<endl;
     if (latest_frame_number>processed_frame_number) {
         // Will hold a frame captured from the camera
         //IplImage* img = 0;
