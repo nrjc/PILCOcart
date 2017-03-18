@@ -239,109 +239,111 @@ int main()
   // An infinite loop
   while(true)
   {
-    // Will hold a frame captured from the camera
-    //IplImage* img = 0;
-    if(do_once) {
-      clock_gettime(CLOCK_MONOTONIC,  &t2);
-      last_time = (t2.tv_sec - t1.tv_sec) + (double) (t2.tv_nsec - t1.tv_nsec) * 1e-9;
+    if (latest_frame_number>processed_frame_number) {
+        // Will hold a frame captured from the camera
+        //IplImage* img = 0;
+        if(do_once) {
+          clock_gettime(CLOCK_MONOTONIC,  &t2);
+          last_time = (t2.tv_sec - t1.tv_sec) + (double) (t2.tv_nsec - t1.tv_nsec) * 1e-9;
+        }
+        if (!start && curr_time > (initiation_time+0.5)) start = 1; // Run for 0.5 sec before applying control and storing pos
+        // Initialise dt 
+        //dt = 0;
+
+        // Wait for a frame to appear
+        while(latest_frame_number - processed_frame_number < 2) {cout<<"";}
+
+
+        IplImage* video = cvCreateImage(cvGetSize(img), 8, 3);
+        cvCopy(img,video);
+        IplImage* frame = cvCreateImage(cvGetSize(video), 8, 3);
+
+
+        processed_frame_number = latest_frame_number;
+
+        // Finds time
+        clock_gettime(CLOCK_MONOTONIC,  &t2);
+        curr_time = (t2.tv_sec - t1.tv_sec) + (double) (t2.tv_nsec - t1.tv_nsec) * 1e-9;
+
+        // Finds time step between frames
+        dt = curr_time - last_time;
+
+        // Clear the scribble on each iteration, so I dont get clutter
+        cvSet(imgScribble, cvScalar(0,0,0));
+
+        // Convert tp HSV colour space, note that the output image will look weird
+        cvCvtColor(img, frame, CV_BGR2HSV);
+
+
+        // If we couldn't grab a frame quit
+        if(!frame)
+          break;
+
+        // If this is the first frame, we need to initialize it
+        if(imgScribble == NULL)
+        {
+          imgScribble = cvCreateImage(cvGetSize(img), 8, 3);
+        }
+
+
+        static float redposX = 0;
+        static float redposY = 0;
+
+        float redlastX = redposX;
+        float redlastY = redposY;
+
+        processImage(frame, &redposX, &redposY, REDTHRESH);
+        cout << "Brightness is: " << redposX << endl;
+
+
+        if(do_once) {
+          //startLocation = orangeposX;
+          startLocation = width/2;
+        }
+
+        if(do_once){
+          do_once = 0;
+        }
+        dt = 0.0333;
+
+        
+        // Acquire readings from sensor
+        //S626_ReadADC (0, databuf);
+        //float sens_pos = (short)databuf[0]*(-0.08);
+        //float sens_vel = (short)databuf[1]*(-0.43);
+          
+          bool applycontrollerbuffer = true;
+
+        // Applies a control signal every second time step
+        if(start){
+          applyController(5,dt,0,0,signal,applycontrollerbuffer);
+        }
+        
+
+        last_time = curr_time;
+
+        //cout << "Current time is " << time << "s" << endl;
+        
+
+        // Add the scribbling image and the frame... and we get a combination of the two
+        cvAdd(video, imgScribble, video);
+        
+
+        // Write to videosens_vel = (short)databuf[1]*(-0.43);
+        cvWriteFrame(writer, video);
+
+        //S626_ReadADC (0, databuf);
+          
+        //EXIT AND PRINT CURRENT TIME IF CHANGE IN POS IS DETECTED.
+        if (redposX!=redlastX) {
+            S626_WriteDAC (0, 0, 0);
+            printf("The time taken to detect movement is:%f",curr_time-initiation_time-0.5);
+            break;
+        }
+
+        if(start) syncro_counter++;
+        if (curr_time > 12.5 + initiation_time) {S626_WriteDAC (0, 0, 0); break;}
     }
-    if (!start && curr_time > (initiation_time+0.5)) start = 1; // Run for 0.5 sec before applying control and storing pos
-    // Initialise dt 
-    //dt = 0;
-
-    // Wait for a frame to appear
-    while(latest_frame_number - processed_frame_number < 2) {cout<<"";}
-
-
-    IplImage* video = cvCreateImage(cvGetSize(img), 8, 3);
-    cvCopy(img,video);
-    IplImage* frame = cvCreateImage(cvGetSize(video), 8, 3);
-
-
-    processed_frame_number = latest_frame_number;
-
-    // Finds time
-    clock_gettime(CLOCK_MONOTONIC,  &t2);
-    curr_time = (t2.tv_sec - t1.tv_sec) + (double) (t2.tv_nsec - t1.tv_nsec) * 1e-9;
-
-    // Finds time step between frames
-    dt = curr_time - last_time;
-
-    // Clear the scribble on each iteration, so I dont get clutter
-    cvSet(imgScribble, cvScalar(0,0,0));
-
-    // Convert tp HSV colour space, note that the output image will look weird
-    cvCvtColor(img, frame, CV_BGR2HSV);
-
-
-    // If we couldn't grab a frame quit
-    if(!frame)
-      break;
-
-    // If this is the first frame, we need to initialize it
-    if(imgScribble == NULL)
-    {
-      imgScribble = cvCreateImage(cvGetSize(img), 8, 3);
-    }
-
-
-    static float redposX = 0;
-    static float redposY = 0;
-
-    float redlastX = redposX;
-    float redlastY = redposY;
-
-    processImage(frame, &redposX, &redposY, REDTHRESH);
-    cout << "Brightness is: " << redposX << endl;
-
-
-    if(do_once) {
-      //startLocation = orangeposX;
-      startLocation = width/2;
-    }
-
-    if(do_once){
-      do_once = 0;
-    }
-    dt = 0.0333;
-
-    
-    // Acquire readings from sensor
-    //S626_ReadADC (0, databuf);
-    //float sens_pos = (short)databuf[0]*(-0.08);
-    //float sens_vel = (short)databuf[1]*(-0.43);
-      
-      bool applycontrollerbuffer = true;
-
-    // Applies a control signal every second time step
-    if(start){
-      applyController(5,dt,0,0,signal,applycontrollerbuffer);
-    }
-    
-
-    last_time = curr_time;
-
-    //cout << "Current time is " << time << "s" << endl;
-    
-
-    // Add the scribbling image and the frame... and we get a combination of the two
-    cvAdd(video, imgScribble, video);
-    
-
-    // Write to videosens_vel = (short)databuf[1]*(-0.43);
-    cvWriteFrame(writer, video);
-
-    //S626_ReadADC (0, databuf);
-      
-    //EXIT AND PRINT CURRENT TIME IF CHANGE IN POS IS DETECTED.
-    if (redposX!=redlastX) {
-        S626_WriteDAC (0, 0, 0);
-        printf("The time taken to detect movement is:%f",curr_time-initiation_time-0.5);
-        break;
-    }
-
-    if(start) syncro_counter++;
-    if (curr_time > 12.5 + initiation_time) {S626_WriteDAC (0, 0, 0); break;}
   }
 
   // We're done using the camera. Other applications can now use it
