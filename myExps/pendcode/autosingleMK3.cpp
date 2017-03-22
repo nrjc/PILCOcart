@@ -249,7 +249,7 @@ int main()
     return -1;
   }
   // The windows we'll be using
-  //cvNamedWindow("video");
+  cvNamedWindow("video");
 
   // This image holds the "scribble" data...
   // the tracked positions of the colour
