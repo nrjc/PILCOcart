@@ -23,7 +23,7 @@ try
 catch
 end
 load CartDoubleSwingupRestart90_H60.mat
-H=15;
+H=30;
 for j = 1:N
 % trainDirect(dyn, data, dyni, plant.dyno, j<20);
 dyn.train(data,dyni,plant.dyno);
