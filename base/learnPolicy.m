@@ -10,14 +10,14 @@ if ~exist('expl','var'); expl = []; end
 if ~exist('cc_prev','var'); cc_prev.m = (H+1)*cost.MAX_COST; cc_prev.s = 1; end
 
 % 1. Select best policy parameters to initalise optimisation from
-losses = nan(j-1,1);
-for i = 1:j-1 % loop over previous epsidoes' polices (current episode is 'j')
-  losses(i) = loss(policies{i}, s, dyn, ctrl, cost, H, expl, cc_prev, N-j+1);
-end
-if ~isempty(losses)
-  [~, i] = min(losses);
-  ctrl.set_policy_p(policies{i});
-end
+% losses = nan(j-1,1);
+% for i = 1:j-1 % loop over previous epsidoes' polices (current episode is 'j')
+%   losses(i) = loss(policies{i}, s, dyn, ctrl, cost, H, expl, cc_prev, N-j+1);
+% end
+% if ~isempty(losses)
+%   [~, i] = min(losses);
+%   ctrl.set_policy_p(policies{i});
+% end
 
 % 2. Optimize policy
 [p, fX3, ~, pp] = minimize(ctrl.policy.p, @loss, ctrl.policy.opt, s, dyn, ...
