@@ -148,7 +148,7 @@ void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_lo
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
   float curr_time = 0; // A float for the current time in s
 
@@ -249,7 +249,9 @@ int main()
     return -1;
   }
   // The windows we'll be using
-  cvNamedWindow("video");
+    if (argc>0) {
+        cvNamedWindow("video");
+    }
 
   // This image holds the "scribble" data...
   // the tracked positions of the colour
