@@ -22,8 +22,8 @@ try
     [rd 'control'],[rd 'loss'],[rd 'direct'],[rd 'test']);
 catch
 end
-load CartDoubleSwingupRestart90_H60.mat
-H=30;
+load CartDoubleSwingupRestart23_H40.mat
+H=43;
 for j = 1:N
 % trainDirect(dyn, data, dyni, plant.dyno, j<20);
 dyn.train(data,dyni,plant.dyno);
