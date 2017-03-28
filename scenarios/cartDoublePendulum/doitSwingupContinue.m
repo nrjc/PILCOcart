@@ -23,9 +23,10 @@ try
 catch
 end
 load CartDoubleSwingupRestart23_H40.mat
-H=43;
 for j = 1:N
 % trainDirect(dyn, data, dyni, plant.dyno, j<20);
+  mu0 = [0 0 0 0 0 0 0]';   % initial state mean
+  applyController;
 dyn.train(data,dyni,plant.dyno);
   dyn.on = dyn.on';
   dyn.pn = dyn.pn';
@@ -37,11 +38,6 @@ dyn.train(data,dyni,plant.dyno);
   if pred(j).cost(end).m < 0.3
     H = H + 2;
   end
-  mu0 = [0 0 0 0 0 0 0]';   % initial state mean
-  applyController;
-  dyn.train(data,dyni,plant.dyno);
-  mu0 = [0 0 0 0 0 pi pi]';   % initial state mean
-  applyController;
   animate(latent(j+J), data(j+J), dt, cost);
   disp(['controlled trial # ' num2str(j)]);
 end
