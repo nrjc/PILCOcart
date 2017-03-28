@@ -23,7 +23,7 @@ try
 catch
 end
 load CartDoubleSwingupRestart23_H40.mat
-for j = 1:N
+for j = 24:N
 % trainDirect(dyn, data, dyni, plant.dyno, j<20);
   mu0 = [0 0 0 0 0 0 0]';   % initial state mean
   applyController;
