@@ -171,8 +171,8 @@ int main(int argc, char *argv[])
   // Creating files for data output
   ofstream state_data;
   state_data.open("state.txt");
-    if (!state_data.is_open()) {
-        cout << "NOT OPEN" << endl;
+    if (state_data.is_open()) {
+        cout << "opened state.txt" << endl;
     }
 
   // Set up the sensor reader
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
     return -1;
   }
   // The windows we'll be using
-    cvNamedWindow("video");
+    //cvNamedWindow("video");
 
   // This image holds the "scribble" data...
   // the tracked positions of the colour
@@ -302,7 +302,10 @@ int main(int argc, char *argv[])
       clock_gettime(CLOCK_MONOTONIC,  &t2);
       last_time = (t2.tv_sec - t1.tv_sec) + (double) (t2.tv_nsec - t1.tv_nsec) * 1e-9;
     }
-    if (!start && curr_time > (initiation_time+0.5)) start = 1; // Run for 0.5 sec before applying control and storing pos
+      if (!start && curr_time > (initiation_time+0.5)) {
+          start = 1;// Run for 0.5 sec before applying control and storing pos
+      }
+      
     // Initialise dt 
     //dt = 0;
 
