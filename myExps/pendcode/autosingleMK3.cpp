@@ -171,6 +171,9 @@ int main(int argc, char *argv[])
   // Creating files for data output
   ofstream state_data;
   state_data.open("state.txt");
+    if (!state_data.is_open()) {
+        cout << "NOT OPEN" << endl;
+    }
 
   // Set up the sensor reader
   BYTE        poll_list[16];    // List of items to be digitized.
@@ -249,9 +252,7 @@ int main(int argc, char *argv[])
     return -1;
   }
   // The windows we'll be using
-    if (argc>0) {
-        cvNamedWindow("video");
-    }
+    cvNamedWindow("video");
 
   // This image holds the "scribble" data...
   // the tracked positions of the colour
