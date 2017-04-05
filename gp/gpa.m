@@ -54,6 +54,50 @@ classdef gpa < handle
       else self.opt_sparse = self.opt; end
     end
     
+    function trainmanual(self, dyni, dyno)      
+      hyp = self.inithyp(); nlml = nan(self.E,1);
+      for i=1:self.E            % train gps, each target dimension separately
+        [hyp(i),v] = minimize(hyp(i), @self.gp, self.opt, ...
+          self.inputs, self.target(:,i));
+        nlml(i) = v(end);         % save the negative log marginal likelihood
+      end
+      if strcmp(self.inf_method,'full') || numel(self.induce) == 0
+        self.hyp = hyp;
+      end
+      
+      if ~strcmp(self.inf_method,'full') % are we using a sparse approximation?
+        n = size(self.target,1); [M, d, e] = size(self.induce);
+        if M < n    % only call sparse method if we have enough training points
+          if d == 0                               % initialize inducing inputs?
+            self.induce = zeros(M, size(self.inputs,2), e);    % allocate space
+            for i = 1:e
+              j = randperm(n);                                   % random order
+              self.induce(:,:,i) = self.inputs(j(1:M),:);       % random subset
+            end
+          end
+          nlml2 = nan(self.E,1);
+          for i=1:e % loop each E inducing points (faster), since independent
+            args.induce = self.induce(:,:,i);
+            args.hyp = self.hyp(i);
+            [args2, v] = minimize(args, @sgp, self.opt_sparse, ...
+                               self.inputs, self.target(:,i), self.inf_method);
+            self.induce(:,:,i) = args2.induce;
+            self.hyp(i) = args2.hyp;
+            nlml2(i) = v(end);
+          end
+          fprintf('GP NLML, full: %e, sparse: %e, diff: %e\n', ...
+                                  sum(nlml), sum(nlml2), sum(nlml2)-sum(nlml));
+        end
+      end
+      self.on = [self.hyp.n]' - log(2)/2;
+      self.pn = [self.hyp.n]' - log(10);
+      d = size(self.inputs,2);
+      if ~isfield(self.hyp,'m'); [self.hyp.m] = deal(zeros(d,1)); end
+      if ~isfield(self.hyp,'b'); [self.hyp.b] = deal(0); end
+      
+      self.pre();                                % do possible pre-computations 
+    end
+    
     function train(self, data, dyni, dyno)
       % TRAIN does a sequence of things:
       % 1) copies data to the gpa object,
