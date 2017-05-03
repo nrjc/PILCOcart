@@ -47,7 +47,7 @@ poli = [1 2 3 4 5 8 9 10 11]; % indicies for inputs to the policy
 % Training parameters
 dt = 1/20;                % [s] sampling time
 plant.delay = 0.010;                 % with a delay in the contol loop of 10 ms
-T = 3;                  % [s] horizon time
+T = 1.0;                  % [s] horizon time
 H = ceil(T/dt);           % prediction steps (optimization horizon)
 S0 = diag([1e-4 0.1 0.01 0.01 0.1 0.1 0.1 ].^2); % initial state covariance
 mu0 = [0 0 0 0 0 pi pi]';   % initial state mean
@@ -75,18 +75,14 @@ plant.augi = augi;
 policy.maxU = maxU;                      % max. amplitude of control
 policy.p=struct([]);
 for i=1:H
-    if (i<H/2)
-        policy.p(i).w = ones(U, numel(poli));
-    else
-        policy.p(i).w = -ones(U, numel(poli));
-    end
-policy.p(i).b = 0*randn(U, 1);
+        policy.p(i).w = 0*ones(U, numel(poli));
+        policy.p(i).b = 0*randn(U, 1);
 end
 policy.fcn = @(policy,m,s)conCat(@conHManylin,@gSat,policy,m,s);
 
 
 policy.opt = ...
-        struct('length',-30,'method','BFGS','MFEPLS',20,'verbosity',3,'fh',1);
+        struct('length',-300,'method','BFGS','MFEPLS',20,'verbosity',3,'fh',1);
 global currT;
 % nc = 40;
 % policy.fcn = @(policy,m,s)conCat(@congp,@gSat7,policy,m,s);

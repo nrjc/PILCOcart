@@ -140,6 +140,11 @@ dyn.train(data,dyni,plant.dyno);
     H = H + 5;
   end
   
+  if (mod(j,2)~=0)
+     mu0 = [zeros(5,1);pi;pi];
+  else
+     mu0 = zeros(7,1);
+  end
   applyController;
   animate(latent(j+J), data(j+J), dt, cost);
   disp(['controlled trial # ' num2str(j)]);
