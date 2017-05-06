@@ -2,9 +2,9 @@ close all;
 clear all;
 setdir;
 load combinedDyn
-dyn.inf_method='full';
-dyn.induce=zeros(0,6,12);
+%dyn.inf_method='full';
+dyn.induce = [dyn.induce;zeros(800, 12, E)];
 dyn.trainmanual(dyni,plant.dyno);
 learnPolicy;
-basename='CartCombinedDyn';
+basename='CartCombinedDyna';
 applyController;

@@ -23,7 +23,7 @@ try
 catch
 end
 load CartDoubleSwingupRestart28_H30.mat
-for j = 28:N
+for j = 29:N
 % trainDirect(dyn, data, dyni, plant.dyno, j<20);
   dyn.train(data,dyni,plant.dyno);
   dyn.on = dyn.on';
@@ -36,7 +36,7 @@ for j = 28:N
   if pred(j).cost(end).m < 0.3
     H = H + 4;
   end
-  animate(latent(j+J), data(j+J), dt, cost);
+  %animate(latent(j+J), data(j+J), dt, cost);
   if (mod(j,2)~=0)
      mu0 = [zeros(5,1);pi;pi];
   else
