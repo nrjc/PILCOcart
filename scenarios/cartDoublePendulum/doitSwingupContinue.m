@@ -22,12 +22,10 @@ try
     [rd 'control'],[rd 'loss'],[rd 'direct'],[rd 'test']);
 catch
 end
-load CartDoubleSwingupRestart23_H40.mat
-for j = 24:N
+load CartDoubleSwingupRestart28_H30.mat
+for j = 28:N
 % trainDirect(dyn, data, dyni, plant.dyno, j<20);
-  mu0 = [0 0 0 0 0 0 0]';   % initial state mean
-  applyController;
-dyn.train(data,dyni,plant.dyno);
+  dyn.train(data,dyni,plant.dyno);
   dyn.on = dyn.on';
   dyn.pn = dyn.pn';
   disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
@@ -36,8 +34,14 @@ dyn.train(data,dyni,plant.dyno);
   learnPolicy;
   
   if pred(j).cost(end).m < 0.3
-    H = H + 2;
+    H = H + 4;
   end
   animate(latent(j+J), data(j+J), dt, cost);
+  if (mod(j,2)~=0)
+     mu0 = [zeros(5,1);pi;pi];
+  else
+     mu0 = zeros(7,1);
+  end
+  applyController;
   disp(['controlled trial # ' num2str(j)]);
 end
