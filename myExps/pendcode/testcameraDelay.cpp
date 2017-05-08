@@ -137,6 +137,9 @@ int main()
   // Creating files for data output
   ofstream state_data;
   state_data.open("state.txt");
+    
+    ofstream experiment_data;
+    experiment_data.open("exp.txt");
 
   // Set up the sensor reader
   BYTE        poll_list[16];    // List of items to be digitized.
@@ -441,6 +444,7 @@ int main()
     if (cart_velocity!=0&&start) {
         S626_WriteDAC (0, 0, 0);
         printf("The time taken to detect movement is:%f",curr_time-initiation_time-0.5);
+        experiment_data << curr_time-initiation_time-0.5 << endl;
         break;
     }
 
