@@ -273,7 +273,7 @@ int main()
     //dt = 0;
 
     // Wait for a frame to appear
-    while(latest_frame_number - processed_frame_number < 2) {cout<<"";}
+    while(latest_frame_number - processed_frame_number < 1) {cout<<"";}
 
 
     IplImage* video = cvCreateImage(cvGetSize(img), 8, 3);
