@@ -438,7 +438,7 @@ int main()
     float sens_pos_pred = calc_expected_pos(sens_pos, sens_vel, dt);
       
     //EXIT AND PRINT CURRENT TIME IF CHANGE IN POS IS DETECTED.
-    if (cart_velocity!=0) {
+    if (cart_velocity!=0&&start) {
         S626_WriteDAC (0, 0, 0);
         printf("The time taken to detect movement is:%f",curr_time-initiation_time-0.5);
         break;
