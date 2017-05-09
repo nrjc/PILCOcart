@@ -7,4 +7,5 @@ pilcovideo/.idea
 *.log
 *.mat
 report/**
-*.xlsx
+*.
+*.eps
