@@ -5,3 +5,6 @@ pilcovideo/out
 pilcovideo/.idea
 *#
 *.log
+*.mat
+report/**
+*.xlsx

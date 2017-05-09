@@ -2,7 +2,7 @@ close all;
 clear all;
 setdir;
 
-load ./CartMixedTraining38_H30.mat
+load ./mixedTraining/CartMixedTraining38_H30.mat
 plotall;
 currentrun = J+j;
 animate(latent(currentrun), data(currentrun), dt, cost);
