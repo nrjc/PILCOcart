@@ -1,5 +1,3 @@
-// Program to test delay of webcam
-
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
@@ -82,24 +80,13 @@ void applySimpleRandomControl(int frame_interval, float dt, float sens_pos, floa
   call_count = call_count + 1;
 }
 
-void applylearnedController(mat centers, mat weights, mat W, mat state, int &signal, bool &return_mid)
+void applylearnedController(mat bias, mat weights, mat state, int &signal, bool &return_mid)
 {
-
-    W = diagmat(exp(-2*W));
-    mat ones;
-    ones.ones(50, 1); // 100 weights
-    centers = centers - ones*state.t(); // Makes each row into a difference
-
-    mat evaluation = centers%centers;
-    evaluation = evaluation*W;
-    evaluation = sum(evaluation, 1);
-    evaluation = exp(-0.5*evaluation);
-    evaluation = weights.t()*evaluation;
+    mat evaluation = weights*state+bias;
 
     //Pass through squashing function
     evaluation = (9*sin(evaluation) + sin(3*evaluation))/8;
     signal = (int) (evaluation(0,0)*10000);
-
     
     S626_WriteDAC(0, 0, signal);
 
@@ -162,15 +149,11 @@ int main()
   printf("Done\n");
 
   //Create initiate matrices and load variables for controller
-  mat centers, weights, W, state;
-  centers.load("centers.txt", raw_ascii);
+  mat bias, weights, state;
+  bias.load("bias.txt", raw_ascii);
   weights.load("weights.txt", raw_ascii);
-  W.load("W.txt", raw_ascii);
   state.zeros(18,1);
   bool init_rollout=false;
-  if(centers.n_rows == 0){
-    init_rollout=true;
-  }
 
   // Creating files for data output
   ofstream state_data;
@@ -471,7 +454,7 @@ int main()
           if(init_rollout)
             applySimpleRandomControl(5,dt,sens_pos,sens_vel,signal,return_mid);
           else
-            applylearnedController(centers, weights, W, state, signal, return_mid);
+            applylearnedController(bias, weights, W, state, signal, return_mid);
         }
       }
       else

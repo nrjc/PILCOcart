@@ -7,5 +7,7 @@ pilcovideo/.idea
 *.log
 *.mat
 report/**
-*.
 *.eps
+myExps/pendcode/.idea/**
+myExps/pendcode/cmake-*/**
+*.xlsx
