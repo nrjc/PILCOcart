@@ -76,7 +76,7 @@ cost.gamma = 1.0;
 cost.width = 0.8;
 
 dyn = gpa(D+U, E, angi);                                % D+U inputs, E outputs
-dyn.induce = zeros(0,0,1);                    % use 100 shared inducing inputs
+dyn.induce = zeros(300, 0, E);                % use 300 shared inducing inputs
 dyn.opt = struct('length',-300,'verbosity',3,'method','BFGS','fh',6); 
 
 %policy.fcn = @(policy,m,s)conCat(@congp,@gSat,policy,m,s);
