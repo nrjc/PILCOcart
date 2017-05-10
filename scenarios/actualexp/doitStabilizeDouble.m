@@ -30,7 +30,7 @@ varNames = {'x','theta1','theta2'};
 try
   rd = '../../';
   addpath([rd 'base'],[rd 'util'],[rd 'util/tprod'],[rd 'gp'],...
-               [rd 'gp/NIGP'],[rd 'control'],[rd 'loss'], [rd 'direct'], [rd 'test'], '');
+    [rd 'control'],[rd 'loss'],[rd 'direct'],[rd 'test']);
 catch
 end
 rng(3);
@@ -88,7 +88,6 @@ policy.maxU = maxU;                                 % max. amplitude of control
 %policy.p.hyp = log([ones(1,6) ones(1,12)*0.7 1 0.01])';
 
 policy.opt = struct('length',-100,'MFEPLS',20,'method','BFGS', 'verbosity',3);
-policy.p=struct([]);
 policy.p.w = 0*randn(U, numel(poli));
 policy.p.b = 0*randn(U, 1);
 
