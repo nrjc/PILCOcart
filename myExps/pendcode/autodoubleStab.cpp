@@ -347,9 +347,9 @@ int main()
     float yellowlastY = yellowposY;
 
 
-    processImage(frame, &greenposX, &greenposY, ORANGETHRESH);
-    processImage(frame, &orangeposX, &orangeposY, PINKTHRESH);
-    processImage(frame, &yellowposX, &yellowposY, GREENTHRESH);
+    processImage(frame, &greenposX, &greenposY, GREENTHRESH);
+    processImage(frame, &orangeposX, &orangeposY, ORANGETHRESH);
+    processImage(frame, &yellowposX, &yellowposY, PINKTHRESH);
 
     if(do_once) {
       //startLocation = orangeposX;
