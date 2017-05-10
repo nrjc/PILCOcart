@@ -154,7 +154,7 @@ int main()
 
   // Creating files for data output
   ofstream state_data;
-  state_data.open("state.txt");
+  state_data.open("state.txt",std::fstream::out | std::fstream::app);
 
   // Set up the sensor reader
   BYTE        poll_list[16];    // List of items to be digitized.
