@@ -454,7 +454,7 @@ int main()
           if(init_rollout)
             applySimpleRandomControl(5,dt,sens_pos,sens_vel,signal,return_mid);
           else
-            applylearnedController(bias, weights, W, state, signal, return_mid);
+            applylearnedController(bias, weights, state, signal, return_mid);
         }
       }
       else
