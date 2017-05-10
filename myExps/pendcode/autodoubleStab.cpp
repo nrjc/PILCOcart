@@ -101,7 +101,7 @@ IplImage* GetColourImage(IplImage* imgHSV, int h_low, int s_low, int v_low, int 
 }
 //                hl    sl   vl  hh  sh   vh
 //#define GREENTHRESH 50, 130, 80, 90, 255, 255
-#define YELLOWTHRESH 50, 130, 80, 90, 255, 255
+#define YELLOWTHRESH 345, 61, 89, 355, 71, 101
 #define ORANGETHRESH 10, 150, 200, 20, 255, 255
 //#define YELLOWTHRESH 25, 100, 150, 45, 255, 255
 #define GREENTHRESH 25, 100, 150, 45, 255, 255
@@ -153,7 +153,7 @@ int main()
   bias.load("bias.txt", raw_ascii);
   bool init_rollout = !weights.load("weights.txt", raw_ascii);
   state.zeros(18,1);
-    
+
   // Creating files for data output
   ofstream state_data;
   state_data.open("state.txt");
