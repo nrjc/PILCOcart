@@ -151,10 +151,9 @@ int main()
   //Create initiate matrices and load variables for controller
   mat bias, weights, state;
   bias.load("bias.txt", raw_ascii);
-  weights.load("weights.txt", raw_ascii);
+  bool init_rollout = !weights.load("weights.txt", raw_ascii);
   state.zeros(18,1);
-  bool init_rollout=false;
-
+    
   // Creating files for data output
   ofstream state_data;
   state_data.open("state.txt");
