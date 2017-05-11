@@ -137,7 +137,7 @@ void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_lo
 
 
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   float curr_time = 0; // A float for the current time in s
 
@@ -158,8 +158,7 @@ int main (int argc, char *argv[])
         state_data.open("state.txt");
     }
     else {
-        std::string curNum(argv[1]);
-        state_data.open("state"+curNum+".txt");
+        state_data.open("state"+argv[1]+".txt");
     }
 
   // Set up the sensor reader
