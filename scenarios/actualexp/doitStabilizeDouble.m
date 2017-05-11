@@ -70,6 +70,7 @@ angi = [3 4 7 8 11 12];
 H=30;
 
 N = 10; K = 1; J = 1; U = 1; maxU = 10;
+cost = Cost(D);
 cost.fcn = @loss;
 cost.ell = [0.46 0.84];
 cost.gamma = 1.0;
