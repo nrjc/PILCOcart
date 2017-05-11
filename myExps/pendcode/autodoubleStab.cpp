@@ -158,7 +158,7 @@ int main (int argc, char *argv[])
         state_data.open("state.txt");
     }
     else {
-        std::string curNum= argv[0];
+        std::string curNum(argv[1]);
         state_data.open("state"+curNum+".txt");
     }
 
