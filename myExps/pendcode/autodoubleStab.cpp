@@ -158,7 +158,10 @@ int main(int argc, char *argv[])
         state_data.open("state.txt");
     }
     else {
-        state_data.open("state"+argv[1]+".txt");
+        std::string buf("state");
+        buf.append(argv[1]);
+        buf.append(".txt");
+        state_data.open(buf.c_str());
     }
 
   // Set up the sensor reader
