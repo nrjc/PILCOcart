@@ -2,21 +2,21 @@
 
 # rm *txt
 if [ $1 = "0" ]; then
-	scp cbl-fs:"~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt" ./
+	cp ~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt ./
 	while [ ! -f centers.txt ] || [ ! -f weights.txt ]
 	do
 	    sleep 50
 	    #echo -n '.'
-	    scp cbl-fs:"~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt" ./
+	    cp ~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt ./
 	done
-	ssh cbl-fs 'rm ~/PILCOcart/scenarios/actualExp/*txt'
+	rm ~/PILCOcart/scenarios/actualExp/*txt
 	./autodoubleStab
 else
 	./autodoubleStab $3
 fi
 
 
-scp state.txt cbl-fs:~/PILCOcart/scenarios/actualExp
+cp state.txt ~/PILCOcart/scenarios/actualExp
 
 rm -R ../benchdata/double/$2
 mkdir ../benchdata/double/$2
