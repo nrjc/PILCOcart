@@ -10,9 +10,9 @@ if [ $1 = "0" ]; then
 	    cp ~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt ./
 	done
 	rm ~/PILCOcart/scenarios/actualExp/*txt
-	./autodoubleStab
+	./autoStab
 else
-	./autodoubleStab $3
+	./autoStab $3
 fi
 
 
