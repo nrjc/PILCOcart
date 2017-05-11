@@ -122,6 +122,10 @@ MODULE_LICENSE("GPL");
 #define __devinit
 #define __devinitdata
 #endif
+#ifndef __devexit
+#define __devexit
+#endif
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
