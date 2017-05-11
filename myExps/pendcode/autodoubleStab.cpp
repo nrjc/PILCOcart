@@ -137,7 +137,7 @@ void processImage(IplImage* frame, float* posX, float* posY, int h_low, int s_lo
 
 
 
-int main()
+int main (int argc, char *argv[])
 {
   float curr_time = 0; // A float for the current time in s
 
@@ -154,7 +154,12 @@ int main()
 
   // Creating files for data output
   ofstream state_data;
-  state_data.open("state.txt",std::fstream::out | std::fstream::app);
+    if (argc<=0) {
+        state_data.open("state.txt");
+    }
+    else {
+        state_data.open("state"+string(argv[0])+".txt");
+    }
 
   // Set up the sensor reader
   BYTE        poll_list[16];    // List of items to be digitized.

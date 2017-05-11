@@ -75,7 +75,7 @@ cost.ell = [0.46 0.84];
 cost.gamma = 1.0;
 cost.width = 0.8;
 
-dyn = gpa(D+U, E, angi);                                % D+U inputs, E outputs
+dyn = gpa(D+U, E, angi, 'vfe'); % 8 inputs, 6 outputs, and var number 2, 3 are angles
 dyn.induce = zeros(300, 0, E);                % use 300 shared inducing inputs
 dyn.opt = struct('length',-300,'verbosity',3,'method','BFGS','fh',6); 
 

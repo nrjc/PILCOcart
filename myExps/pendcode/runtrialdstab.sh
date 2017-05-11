@@ -10,9 +10,12 @@ if [ $1 = "0" ]; then
 	    scp cbl-fs:"~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt" ./
 	done
 	ssh cbl-fs 'rm ~/PILCOcart/scenarios/actualExp/*txt'
+	./autodoubleStab
+else
+	./autodoubleStab $3
 fi
 
-./autodoubleStab
+
 scp state.txt cbl-fs:~/PILCOcart/scenarios/actualExp
 
 rm -R ../benchdata/double/$2
