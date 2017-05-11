@@ -70,12 +70,8 @@ angi = [3 4 7 8 11 12];
 H=30;
 
 N = 10; K = 1; J = 1; U = 1; maxU = 10;
-cost.D=12;
-cost.MAX_COST=1;
-cost.fcn = @loss;
-cost.ell = [0.46 0.84];
-cost.gamma = 1.0;
-cost.width = 0.8;
+cost = Cost(D);
+
 
 dyn = gpa(D+U, E, angi, 'vfe'); % 8 inputs, 6 outputs, and var number 2, 3 are angles
 dyn.induce = zeros(300, 0, E);                % use 300 shared inducing inputs
