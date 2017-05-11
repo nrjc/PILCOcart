@@ -1,4 +1,4 @@
-function setRunTrial(ctrl)
+function setRunTrialDMK3(ctrl)
 	%output Linear Policy
 	format short
 	fileID = fopen('weights.txt', 'w');

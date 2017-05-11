@@ -106,10 +106,9 @@ for j = 1:169
   learnPolicy;
 
   filename = [basename num2str(j) '_H' num2str(H)]; save(filename);
-  setRunTrialDMK3L(ctrl)
+  setRunTrialDMK3(ctrl)
   getRunTrialDMK3
 
-  drawRealExpD
 
   disp(['controlled trial # ' num2str(j)]);
 end
