@@ -118,7 +118,10 @@ MODULE_LICENSE("GPL");
 #define PCI_NAME(x) ((x)->slot_name)
 #endif
 
-
+#ifndef __devinit
+#define __devinit
+#define __devinitdata
+#endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
