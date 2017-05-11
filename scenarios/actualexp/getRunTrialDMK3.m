@@ -14,8 +14,8 @@ else
     for i=1:J
         nstate=load(['state' int2str(i) '.txt']);
         newH = min([size(nstate,1) H+1]);
-        data(J+j).state = nstate(1:newH,1:12);
-        data(J+j).action = nstate(1:newH-1,13);
+        data(i+j).state = nstate(1:newH,1:12);
+        data(i+j).action = nstate(1:newH-1,13);
     end
 end
 %cleaning
