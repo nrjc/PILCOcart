@@ -158,7 +158,8 @@ int main (int argc, char *argv[])
         state_data.open("state.txt");
     }
     else {
-        state_data.open("state"+string(argv[0])+".txt");
+        std::string curNum= argv[0];
+        state_data.open("state"+curNum+".txt");
     }
 
   // Set up the sensor reader
