@@ -324,8 +324,8 @@ int main()
     processImage(frame, &orangeposX, &orangeposY, ORANGETHRESH);
 
     if(do_once) {
-      //startLocation = orangeposX;
-      startLocation = width/2;
+      startLocation = orangeposX;
+      //startLocation = width/2;
       orangelastX = orangeposX;
       orangelastY = orangeposY;
     }
