@@ -2,14 +2,14 @@
 
 # rm *txt
 if [ $1 = "0" ]; then
-	cp ~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt ./
+	cp ~/PILCOcart/scenarios/actualexp/bias.txt ~/PILCOcart/scenarios/actualexp/weights.txt ./
 	while [ ! -f centers.txt ] || [ ! -f weights.txt ]
 	do
 	    sleep 50
 	    #echo -n '.'
-	    cp ~/PILCOcart/scenarios/actualExp/bias.txt ~/PILCOcart/scenarios/actualExp/weights.txt ./
+	    cp ~/PILCOcart/scenarios/actualexp/bias.txt ~/PILCOcart/scenarios/actualexp/weights.txt ./
 	done
-	rm ~/PILCOcart/scenarios/actualExp/*txt
+	rm ~/PILCOcart/scenarios/actualexp/*txt
 	read
 	./autoStab
 else
