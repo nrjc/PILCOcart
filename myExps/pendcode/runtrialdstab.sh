@@ -18,7 +18,7 @@ else
 fi
 
 
-cp state.txt ~/PILCOcart/scenarios/actualExp
+cp state*.txt ~/PILCOcart/scenarios/actualexp
 
 rm -R ../benchdata/double/$2
 mkdir ../benchdata/double/$2
