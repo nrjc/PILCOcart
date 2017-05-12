@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 
   // Creating files for data output
   ofstream state_data;
-    if (argc<1) {
+    if (argc<2) {
         state_data.open("state.txt");
     }
     else {
