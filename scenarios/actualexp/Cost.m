@@ -18,8 +18,8 @@ classdef Cost < CostSuper
   
   properties (SetAccess = private)
     % default values:
-    ell = [0.6 0.6]
-    width = 1.0
+    ell = [0.15 0.60]
+    width = 0.8
     gamma = 1.0    % no discounting
   end
   
@@ -43,13 +43,13 @@ classdef Cost < CostSuper
       % PRE, precomputations that only need to happen once
       
       D = self.D; %#ok<*PROP>
-      self.cangi = [D-1,D];
+      self.cangi = [3 4 7 8 11 12];
       self.Da = D;
       self.Dt = D + 2*length(self.cangi);
       
-      z = zeros(D+4,1); z([D+2 D+4]) = 1;
-      C = zeros(2,D+4); C(1,D-2) = 1; C(1,[D+1 D+3]) = -self.ell;
-      C(2,[D+2 D+4]) = self.ell; Q = C'*C;
+      z = zeros(2*length(self.cangi),1); z([22 24]) = 1;
+      C = zeros(2,2*length(self.cangi)); C(1,10) = 1; C(1,[21 23]) = -self.ell;
+      C(2,[22 24]) = self.ell; Q = C'*C;
       for i = 1:length(self.width)           % scale mixture of immediate costs
         W = Q/self.width(i)^2;
         self.zW{i} = struct('z',z,'W',W);

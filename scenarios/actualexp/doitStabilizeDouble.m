@@ -17,6 +17,10 @@
 %  14 11 theta1      angle of the inner pendulum
 %  14 12 theta2      angle of the outer pendulum
 %  15    u           force applied to cart
+%     13 sin(theta1)  ALL BELOW USED FOR POLICY TRAINING
+%     14 cos(theta1)
+%     15 sin(theta2)
+%     16 cos(theta2)
 %
 % Copyright (C) by Carl Edward Rasmussen, Rowan McAllister 2015-02-17
 
