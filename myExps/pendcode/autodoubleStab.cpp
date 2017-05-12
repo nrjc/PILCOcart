@@ -391,17 +391,17 @@ int main(int argc, char *argv[])
     float cos_angle_2 = b_2/sqrt(a_2*a_2 + b_2*b_2);
 
     // Save the pendulum length for normalising purposes if wanted
-    static float angle = 3.1416;
+    static float angle = 0;
     
-    static float pp_angle = 3.1416;
-    static float p_angle = 3.1416;
+    static float pp_angle = 0;
+    static float p_angle = 0;
     pp_angle = p_angle;
     p_angle = angle;
     angle = angle + asin(sin_angle*last_cos - last_sin*cos_angle);
 
-    static float angle_2 = 3.1416;
-    static float pp_angle_2 = 3.1416;
-    static float p_angle_2 = 3.1416;
+    static float angle_2 = 0;
+    static float pp_angle_2 = 0;
+    static float p_angle_2 = 0;
     pp_angle_2 = p_angle_2;
     p_angle_2 = angle_2;
     angle_2 = angle_2 + asin(sin_angle_2*last_cos_2 - last_sin_2*cos_angle_2);
