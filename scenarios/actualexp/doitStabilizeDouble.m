@@ -42,7 +42,7 @@ rng(3);
 D = 12;
 E = 3;
 
-mu0 = [0 0 pi pi 0 0 pi pi 0 0 pi pi]';                                 % initial state mean
+mu0 = [0 0 0 0 0 0 0 0 0 0 0 0]';                                 % initial state mean
 
 S0 = diag([1e-9 0.125 0.0071 0.0071 1e-9 0.125 0.0071 0.0071 1e-9 0.125 0.0071 0.0071].^2);
 
