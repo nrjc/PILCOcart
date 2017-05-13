@@ -39,7 +39,7 @@ end
 load(fullname);
 setRunTrialDMK3(ctrl)
 getRunTrialDMK3
-for j = 1:169
+for j = num+1:169
   trainDirect(dyn, data, [1:12], [10:12], j<144);
   %disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
   %          ['observation noise|process noise std|inducing targets'], '%0.5f');
