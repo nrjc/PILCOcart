@@ -5,7 +5,7 @@ end
 %Number of initial trials
 J=4;
 %load the trial
-if (j>1)
+if (j>=1)
     nstate=load('state.txt');
     newH = min([size(nstate,1) H+1]);
     data(J+j).state = nstate(1:newH,1:12);
