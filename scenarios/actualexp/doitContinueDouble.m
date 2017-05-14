@@ -27,7 +27,6 @@
 close all
 format short; format compact;
 
-cost = Cost(D);
 basename = 'swingupDMK3Expf';
 fullname = [basename int2str(num) '_H30.mat'];
 
@@ -38,6 +37,7 @@ try
 catch
 end
 load(fullname);
+cost = Cost(D);
 setRunTrialDMK3(ctrl)
 getRunTrialDMK3
 for j = num+1:169
