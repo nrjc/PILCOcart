@@ -27,6 +27,7 @@
 close all
 format short; format compact;
 
+cost = Cost(D);
 basename = 'swingupDMK3Expf';
 fullname = [basename int2str(num) '_H30.mat'];
 
