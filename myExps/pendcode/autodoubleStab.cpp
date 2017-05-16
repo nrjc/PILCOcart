@@ -296,7 +296,10 @@ int main(int argc, char *argv[])
       clock_gettime(CLOCK_MONOTONIC,  &t2);
       last_time = (t2.tv_sec - t1.tv_sec) + (double) (t2.tv_nsec - t1.tv_nsec) * 1e-9;
     }
-    if (!start && curr_time > (initiation_time+0.5)) start = 1; // Run for 0.5 sec before applying control and storing pos
+    if (!start && curr_time > (initiation_time+0.5)) {
+        start = 1;
+        cout << "RELEASE!" << endl;
+    } // Run for 0.5 sec before applying control and storing pos
     // Initialise dt 
     //dt = 0;
 
