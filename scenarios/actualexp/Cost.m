@@ -19,7 +19,7 @@ classdef Cost < CostSuper
   properties (SetAccess = private)
     % default values:
     ell = [0.70 0.84]
-    width = 0.8
+    width = 1.0
     gamma = 1.0    % no discounting
   end
   

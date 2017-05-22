@@ -41,7 +41,8 @@ cost = Cost(D);
 setRunTrialDMK3(ctrl)
 getRunTrialDMK3
 for j = num+1:169
-  trainDirect(dyn, data, [1:12], [10:12], j<144);
+  dyn.train(data,[1:12],[10:12]);
+  %trainDirect(dyn, data, [1:12], [10:12], j<144);
   %disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
   %          ['observation noise|process noise std|inducing targets'], '%0.5f');
   ctrl.set_dynmodel(dyn);                    % for CtrlBF. No effect for CtrlNF
