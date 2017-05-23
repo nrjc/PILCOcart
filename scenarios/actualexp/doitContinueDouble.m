@@ -36,11 +36,12 @@ try
     [rd 'control'],[rd 'loss'],[rd 'direct'],[rd 'test']);
 catch
 end
+temp = num;
 load(fullname);
+num = temp;
 cost = Cost(D);
-setRunTrialDMK3(ctrl)
 getRunTrialDMK3
-for j = num+1:169
+for j = (num+1):169
   dyn.train(data,[1:12],[10:12]);
   %trainDirect(dyn, data, [1:12], [10:12], j<144);
   %disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
