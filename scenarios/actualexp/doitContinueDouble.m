@@ -42,6 +42,7 @@ num = temp;
 cost = Cost(D);
 getRunTrialDMK3
 for j = (num+1):169
+  disp(['The number of j is:' num2str(j)]);
   dyn.train(data,[1:12],[10:12]);
   %trainDirect(dyn, data, [1:12], [10:12], j<144);
   %disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
