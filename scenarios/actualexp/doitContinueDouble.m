@@ -37,7 +37,7 @@ try
 catch
 end
 temp = num;
-load(fullname);
+load(fullname, '-regexp', '^(?!temp)...')
 num = temp;
 cost = Cost(D);
 getRunTrialDMK3
