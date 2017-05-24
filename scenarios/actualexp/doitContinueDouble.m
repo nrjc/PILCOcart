@@ -28,7 +28,7 @@ close all
 format short; format compact;
 
 basename = 'swingupDMK3Expf';
-fullname = [basename int2str(num) '_H30.mat'];
+fullname = [basename int2str(num) '_H20.mat'];
 
 try
   rd = '../../';
@@ -47,7 +47,10 @@ for j = (num+1):169
   %disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
   %          ['observation noise|process noise std|inducing targets'], '%0.5f');
   ctrl.set_dynmodel(dyn);                    % for CtrlBF. No effect for CtrlNF
-  learnPolicy;
+  for i=1:6
+    H=5*i;
+    learnPolicy
+  end
 
   filename = [basename num2str(j) '_H' num2str(H)]; save(filename);
   setRunTrialDMK3(ctrl)
