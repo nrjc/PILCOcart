@@ -37,8 +37,9 @@ try
 catch
 end
 temp = num;
-load(fullname, '-regexp', '^(?!temp)...')
+load(fullname, '-regexp', '^(?!temp).')
 num = temp;
+clear temp;
 cost = Cost(D);
 getRunTrialDMK3
 for j = (num+1):169
