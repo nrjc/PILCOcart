@@ -28,7 +28,7 @@ close all
 format short; format compact;
 
 basename = 'swingupDMK3Expf';
-fullname = [basename int2str(num) '_H20.mat'];
+fullname = [basename int2str(num) '_H30.mat'];
 
 try
   rd = '../../';
