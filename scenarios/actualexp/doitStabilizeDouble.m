@@ -44,6 +44,8 @@ E = 3;
 
 mu0 = [0 0 0 0 0 0 0 0 0 0 0 0]';                                 % initial state mean
 
+newanglenoise1 = 0.05; 
+
 S0 = diag([1e-9 0.0125 newanglenoise1 0.08 1e-9 0.0125 ...
     newanglenoise1 0.08 1e-9 0.0125 newanglenoise1 0.08].^2);
 S0(2,6)=(0.012499)^2; S0(6,2)=S0(2,6); %0.0671 on dx
