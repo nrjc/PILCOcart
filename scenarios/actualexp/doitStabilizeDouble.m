@@ -44,23 +44,22 @@ E = 3;
 
 mu0 = [0 0 0 0 0 0 0 0 0 0 0 0]';                                 % initial state mean
 
-S0 = diag([1e-9 0.125 0.0071 0.0071 1e-9 0.125 0.0071 0.0071 1e-9 0.125 0.0071 0.0071].^2);
-
-%x position
-S0(2,6)=(0.12499)^2; S0(6,2)=S0(2,6); %0.0671 on dx
-S0(6,10)=(0.12499)^2; S0(10,6)=S0(6,10); 
+S0 = diag([1e-9 0.0125 newanglenoise1 0.08 1e-9 0.0125 ...
+    newanglenoise1 0.08 1e-9 0.0125 newanglenoise1 0.08].^2);
+S0(2,6)=(0.012499)^2; S0(6,2)=S0(2,6); %0.0671 on dx
+S0(6,10)=(0.012499)^2; S0(10,6)=S0(6,10);
 S0(2,10) = S0(2,6)/S0(2,2) * S0(2,6);
 S0(10,2) = S0(2,10);
 
 %angle of inner pendulum
-S0(3,7)=(0.0060)^2; S0(7,3)=S0(3,7); % 0.16 on dtheta
-S0(7,11)=(0.0060)^2; S0(11,7)=S0(7,11);
+S0(3,7)=(newanglenoise1)^2; S0(7,3)=S0(3,7); % 0.16 on dtheta
+S0(7,11)=(newanglenoise1)^2; S0(11,7)=S0(7,11);
 S0(3,11) = S0(3,7)/S0(3,3) * S0(3,7);
 S0(11,3) = S0(3,11);
 
 %angle of outer pendulum
-S0(4,8)=(0.0060)^2; S0(8,4)=S0(4,8); % 0.16 on dtheta
-S0(8,12)=(0.0060)^2; S0(12,8)=S0(8,12);
+S0(4,8)=(0.08)^2; S0(8,4)=S0(4,8); % 0.16 on dtheta
+S0(8,12)=(0.08)^2; S0(12,8)=S0(8,12);
 S0(4,12) = S0(4,8)/S0(4,4) * S0(4,8);
 S0(12,4) = S0(4,12);
 
@@ -101,7 +100,8 @@ j=0;
 getRunTrialDMK3
 
 for j = 1:169
-  trainDirect(dyn, data, [1:12], [10:12], j<144);
+  disp(['The number of j is:' num2str(j)]);
+  dyn.train(data,[1:12],[10:12]);
   %disptable(exp([dyn.on; dyn.pn; dyn.hyp.n]), varNames, ...
   %          ['observation noise|process noise std|inducing targets'], '%0.5f');
   ctrl.set_dynmodel(dyn);                    % for CtrlBF. No effect for CtrlNF
